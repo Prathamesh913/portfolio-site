@@ -22,6 +22,7 @@ export const buildProjects: BuildProject[] = [
     story: story("The making notes and project story will be documented here once ready."),
     technologies: ["To be updated"],
     liveUrl: "https://cineprint.click/",
+    repositoryUrl: "https://github.com/Prathamesh913/cine-print-gallery",
     isPlaceholder: false,
   },
   {
@@ -29,13 +30,14 @@ export const buildProjects: BuildProject[] = [
     title: "ProjectDock",
     tagline: "Active files, references, and notes one keystroke away.",
     description:
-      "A lightweight dock for creative work. Keeps the current project's files and scratch notes at hand without cluttering tabs. In active development; the repository is not public yet.",
+      "A lightweight dock for creative work. Keeps the current project's files and scratch notes at hand without cluttering tabs. In active development.",
     status: "in progress",
     year: "2026",
     cover: placeholderMedia("projectdock-cover", "Placeholder ProjectDock visual", "4 / 3"),
     gallery: [],
     story: story("The making notes and product details will be documented here."),
     technologies: ["To be updated"],
+    repositoryUrl: "https://github.com/Prathamesh913/ProjectDock",
     isPlaceholder: true,
   },
   {
@@ -49,6 +51,7 @@ export const buildProjects: BuildProject[] = [
     gallery: [],
     story: story("Details will be documented here."),
     technologies: ["To be updated"],
+    repositoryUrl: "https://github.com/Prathamesh913/codeatlas",
     isPlaceholder: true,
   },
   {

@@ -320,6 +320,20 @@ function App() {
                   <h3 className="coll-title"><a className="work-title-link" href={`#/work/${cs.slug}`}>{cs.title}</a></h3>
                   <p className="coll-meta">{kindLabel} · {cs.year}</p>
                   <p className="coll-desc">{cs.summary}</p>
+                  {(cs.sourceUrl.includes("github.com") || cs.marketplaceUrl) && (
+                    <p className="coll-links">
+                      {cs.sourceUrl.includes("github.com") && (
+                        <a href={cs.sourceUrl} target="_blank" rel="noreferrer">
+                          GitHub ↗<span className="sr-only">: {cs.title} repository (opens in a new tab)</span>
+                        </a>
+                      )}
+                      {cs.marketplaceUrl && (
+                        <a href={cs.marketplaceUrl} target="_blank" rel="noreferrer">
+                          Marketplace ↗<span className="sr-only">: {cs.title} on the Omarchy marketplace (opens in a new tab)</span>
+                        </a>
+                      )}
+                    </p>
+                  )}
                 </article>
               );
             })}

@@ -113,11 +113,11 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .lamp-toggle {
   appearance: none; display: inline-grid; place-items: center; flex: 0 0 auto;
   width: 2.5rem; height: 2.5rem; padding: 0; cursor: pointer;
-  border: 1px solid var(--border); border-radius: 10px;
-  background: var(--panel); color: var(--ink-soft);
-  transition: border-color 150ms ease, color 150ms ease, transform 150ms ease, background 150ms ease;
+  border: 0; border-radius: 10px;
+  background: transparent; color: var(--ink-soft);
+  transition: color 150ms ease, transform 150ms ease;
 }
-.lamp-toggle:hover { border-color: var(--primary); color: var(--ink); transform: translateY(-1px); }
+.lamp-toggle:hover { color: var(--primary); transform: translateY(-1px); }
 .lamp-toggle:active { transform: translateY(0) scale(0.96); }
 .lamp-toggle svg { width: 1.4rem; height: 1.4rem; display: block; overflow: visible; }
 .lamp-stroke { stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; fill: none; }
@@ -128,7 +128,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .lamp-toggle.is-on .lamp-shade { fill: #2b1a12; }
 :root[data-theme="light"] .lamp-toggle.is-on .lamp-shade { fill: #f3ddd0; }
 .lamp-glow { fill: var(--primary); opacity: 0; transition: opacity 250ms ease; }
-.lamp-toggle.is-on .lamp-glow { opacity: 0.28; }
+.lamp-toggle.is-on .lamp-glow { opacity: 0.28; transition-delay: 70ms; }
 .lamp-bulb {
   fill: transparent; stroke: currentColor; stroke-width: 1.5;
   transition: fill 200ms ease, stroke 200ms ease;
@@ -139,7 +139,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .lamp-toggle:active .lamp-pull { transform: translateY(1px); }
 .lamp-toggle:active .lamp-knob { transform: translateY(1px); }
 .lamp-rays { stroke: var(--primary); stroke-width: 1.5; stroke-linecap: round; opacity: 0; transition: opacity 250ms ease; }
-.lamp-toggle.is-on .lamp-rays { opacity: 1; }
+.lamp-toggle.is-on .lamp-rays { opacity: 1; transition-delay: 70ms; }
 
 /* Intro */
 .intro { padding: 3rem 0 2rem; }
@@ -519,6 +519,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+  .lamp-toggle.is-on .lamp-glow, .lamp-toggle.is-on .lamp-rays { transition-delay: 0ms; }
 }
 
 /* CURRENTLY — watching / listening / reading snapshot */
