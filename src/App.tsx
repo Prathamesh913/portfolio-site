@@ -4,7 +4,10 @@ import type { BlogPost, GalleryItem } from "./data";
 import { allCaseStudies, CASE_ORDER } from "./data/caseStudies";
 import type { CaseStudy } from "./data/caseStudies";
 import { CaseStudyPage } from "./components/CaseStudyPage";
+import { CurrentlySection } from "./components/CurrentlySection";
+import { GithubActivity } from "./components/GithubActivity";
 import { SkillIcon } from "./components/SkillIcons";
+import { ThemeToggle } from "./components/ThemeToggle";
 
 const GITHUB_URL = "https://github.com/Prathamesh913";
 
@@ -251,13 +254,16 @@ function App() {
 
       <header className="site-header">
         <a className="wordmark" href="#top" aria-label="Prathamesh home">prathamesh</a>
-        <nav className="site-nav" aria-label="Primary navigation">
-          <a href="#work" className={activeSection === "work" ? "is-active" : ""}>work</a>
-          <a href="#archive" className={activeSection === "archive" ? "is-active" : ""}>archive</a>
-          <a href="#about" className={activeSection === "about" ? "is-active" : ""}>about</a>
-          <a href={GITHUB_URL} target="_blank" rel="noreferrer">github</a>
-          <a href="#contact" className={activeSection === "contact" ? "is-active" : ""}>contact</a>
-        </nav>
+        <div className="site-header__group">
+          <nav className="site-nav" aria-label="Primary navigation">
+            <a href="#work" className={activeSection === "work" ? "is-active" : ""}>work</a>
+            <a href="#archive" className={activeSection === "archive" ? "is-active" : ""}>archive</a>
+            <a href="#about" className={activeSection === "about" ? "is-active" : ""}>about</a>
+            <a href={GITHUB_URL} target="_blank" rel="noreferrer">github</a>
+            <a href="#contact" className={activeSection === "contact" ? "is-active" : ""}>contact</a>
+          </nav>
+          <ThemeToggle />
+        </div>
       </header>
 
       <main id="main-content">
@@ -296,6 +302,10 @@ function App() {
             </div>
           </div>
         </section>
+
+        <CurrentlySection />
+
+        <GithubActivity />
 
         <section className="work section-frame" id="work" aria-label="Work">
           <h2>Work</h2>

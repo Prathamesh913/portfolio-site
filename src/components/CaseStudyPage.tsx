@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { CaseStudy } from "../data/caseStudies";
 import { CASE_ORDER, allCaseStudies } from "../data/caseStudies";
+import { ThemeToggle } from "./ThemeToggle";
 
 function getRelated(slug: string): { prev?: CaseStudy; next?: CaseStudy } {
   const i = CASE_ORDER.indexOf(slug);
@@ -37,9 +38,12 @@ export function CaseStudyPage({ data }: { data: CaseStudy }) {
 
       <header className="site-header">
         <a className="wordmark" href="#/" aria-label="Back to Prathamesh home">← prathamesh</a>
-        <nav className="site-nav" aria-label="Secondary navigation">
-          <a href={data.sourceUrl} target="_blank" rel="noreferrer" aria-label={`View original ${data.title} project (opens in new tab)`}>original ↗</a>
-        </nav>
+        <div className="site-header__group">
+          <nav className="site-nav" aria-label="Secondary navigation">
+            <a href={data.sourceUrl} target="_blank" rel="noreferrer" aria-label={`View original ${data.title} project (opens in new tab)`}>original ↗</a>
+          </nav>
+          <ThemeToggle />
+        </div>
       </header>
 
       <main id="main-content" className="cs">
