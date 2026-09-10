@@ -272,7 +272,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   border: 1px solid var(--border); border-radius: var(--radius); background: var(--element);
   margin: 0 0 0.8rem;
 }
-.coll-project-cover { aspect-ratio: 16 / 9; object-fit: contain; }
+.coll-project-cover { aspect-ratio: 16 / 9; object-fit: cover; object-position: top center; }
 .coll-meta { margin: 0; font-family: var(--font); font-size: 0.72rem; color: var(--info); }
 .coll-title {
   margin: 0.4rem 0 0; font-family: var(--font); font-size: 0.98rem; font-weight: 700;

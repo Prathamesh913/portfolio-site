@@ -659,7 +659,7 @@ export const gamedock: CaseStudy = {
       title: "Product preview",
       intro: "The GameDock panel: Steam, Heroic, RetroArch, and RPCS3 in one compact dashboard.",
       screens: [
-        { src: "/media/case-studies/gamedock/01-product-preview.png", alt: "GameDock panel preview", caption: "A compact Omarchy panel that unifies games from Steam, Heroic, RetroArch, and RPCS3 into one dashboard.", w: 1280, h: 720 },
+        { src: "/media/case-studies/gamedock/01-product-preview.png", alt: "GameDock panel preview", caption: "A compact Omarchy panel that unifies games from Steam, Heroic, RetroArch, and RPCS3 into one dashboard.", w: 1920, h: 1080 },
       ],
     },
     {
