@@ -103,18 +103,13 @@ async function tryPublicProxy(username: string): Promise<GithubActivitySnapshot 
 export async function fetchGithubActivity(): Promise<GithubActivitySnapshot> {
   for (const url of ENDPOINTS) {
     const snapshot = await tryEndpoint(url);
-    if (snapshot) return mergeWithFallback(snapshot);
+    // The endpoint answers 200 with empty weeks when the token is missing —
+    // treat that as "try the next source", not as a final answer.
+    if (snapshot && snapshot.weeks.length > 0) return snapshot;
   }
   const proxy = await tryPublicProxy(githubFallback.username);
   if (proxy) return proxy;
   return githubFallback;
-}
-
-/** Server sends empty weeks when the token is missing — keep the
- *  placeholder instead of rendering an empty grid. */
-function mergeWithFallback(live: GithubActivitySnapshot): GithubActivitySnapshot {
-  if (!live.weeks || live.weeks.length === 0) return githubFallback;
-  return live;
 }
 
 export { githubFallback };
