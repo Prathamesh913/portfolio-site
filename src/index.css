@@ -282,7 +282,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .coll-title a:hover { color: var(--primary); border-color: var(--primary); }
 .coll-desc { margin: 0.45rem 0 0; font-size: 0.84rem; color: var(--ink-soft); }
 .coll-tags { margin: 0.55rem 0 0; font-family: var(--font); font-size: 0.7rem; color: var(--muted); }
-.coll-links { margin: 0.75rem 0 0; font-size: 0.8rem; margin-top: auto; padding-top: 0.75rem; }
+.coll-links { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin: 0.75rem 0 0; font-size: 0.8rem; margin-top: auto; padding-top: 0.75rem; }
 .coll-links a { border-bottom: 1px solid var(--muted); transition: color 150ms ease, border-color 150ms ease; }
 .coll-links a:hover { color: var(--primary); border-color: var(--primary); }
 .coll-card--project .coll-desc { margin-bottom: 0.25rem; }

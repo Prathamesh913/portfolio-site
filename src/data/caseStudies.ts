@@ -49,6 +49,7 @@ export type CaseStudy = {
   omittedNote?: CaseStudyOmittedNote;
   reflection: string[];
   sourceUrl: string;
+  marketplaceUrl?: string;
 };
 
 // Display + prev/next order (user-confirmed)
@@ -678,6 +679,7 @@ export const gamedock: CaseStudy = {
     "It also demonstrates handling multiple heterogeneous data sources — four launchers with different metadata and launch paths — behind one consistent, fast in-memory browsing model.",
   ],
   sourceUrl: "https://github.com/Prathamesh913/gamedock",
+  marketplaceUrl: "https://plugins.omarchy.org/plugin.html?id=io.github.prathamesh913.gamedock",
 };
 
 export const allCaseStudies: CaseStudy[] = [

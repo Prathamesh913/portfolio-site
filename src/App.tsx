@@ -337,9 +337,21 @@ function App() {
                   {isNonEmpty(project.year) ? ` · ${project.year}` : ""}
                 </p>
                 <p className="coll-desc">{project.tagline} {project.description}</p>
-                {project.liveUrl && (
+                {(project.liveUrl || project.repositoryUrl || project.marketplaceUrl) && (
                   <p className="coll-links">
-                    <a className="btn-primary" href={project.liveUrl} target="_blank" rel="noreferrer">Visit ↗</a>
+                    {project.liveUrl && (
+                      <a className="btn-primary" href={project.liveUrl} target="_blank" rel="noreferrer">Visit ↗</a>
+                    )}
+                    {project.repositoryUrl && (
+                      <a href={project.repositoryUrl} target="_blank" rel="noreferrer">
+                        GitHub ↗<span className="sr-only">: {project.title} repository (opens in a new tab)</span>
+                      </a>
+                    )}
+                    {project.marketplaceUrl && (
+                      <a href={project.marketplaceUrl} target="_blank" rel="noreferrer">
+                        Marketplace ↗<span className="sr-only">: {project.title} on the Omarchy marketplace (opens in a new tab)</span>
+                      </a>
+                    )}
                   </p>
                 )}
               </article>

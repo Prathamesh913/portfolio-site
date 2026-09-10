@@ -41,6 +41,9 @@ export function CaseStudyPage({ data }: { data: CaseStudy }) {
         <div className="site-header__group">
           <nav className="site-nav" aria-label="Secondary navigation">
             <a href={data.sourceUrl} target="_blank" rel="noreferrer" aria-label={`View original ${data.title} project (opens in new tab)`}>original ↗</a>
+            {data.marketplaceUrl && (
+              <a href={data.marketplaceUrl} target="_blank" rel="noreferrer" aria-label={`View ${data.title} on the Omarchy marketplace (opens in new tab)`}>marketplace ↗</a>
+            )}
           </nav>
           <ThemeToggle />
         </div>
@@ -143,6 +146,12 @@ export function CaseStudyPage({ data }: { data: CaseStudy }) {
             <a href="#/">← back to work</a>
             {" · "}
             <a href={data.sourceUrl} target="_blank" rel="noreferrer" aria-label={`View original ${data.title} project (opens in new tab)`}>view original ↗</a>
+            {data.marketplaceUrl && (
+              <>
+                {" · "}
+                <a href={data.marketplaceUrl} target="_blank" rel="noreferrer" aria-label={`View ${data.title} on the Omarchy marketplace (opens in new tab)`}>marketplace ↗</a>
+              </>
+            )}
           </p>
         </footer>
       </main>

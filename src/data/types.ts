@@ -49,6 +49,7 @@ export type BuildProject = {
   technologies: string[];
   liveUrl?: string;
   repositoryUrl?: string;
+  marketplaceUrl?: string;
   isPlaceholder: boolean;
 };
 
