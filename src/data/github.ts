@@ -1,12 +1,13 @@
 // GitHub activity — contribution-calendar snapshot.
 //
-// Renders `githubFallback` until `/api/github` answers. That endpoint
-// (api/github.ts on Vercel, netlify/functions/github.mts on Netlify) holds
-// the token server-side and returns this same shape, so swapping the
-// placeholder for live data needs no component changes.
+// Renders `githubFallback` only when both live sources are unreachable:
+// the token-backed endpoint (api/github.ts on Vercel,
+// netlify/functions/github.mts on Netlify) first, then the token-free
+// public proxy in src/lib/github.ts. Same shape throughout, so swapping
+// sources needs no component changes.
 //
 // The fallback below is a seeded placeholder, not real activity — it only
-// shows until GITHUB_TOKEN is configured, and the UI badges it "snapshot".
+// shows as a last resort, and the UI badges it "snapshot".
 
 export type ContributionLevel = 0 | 1 | 2 | 3 | 4;
 
