@@ -259,7 +259,7 @@ export default async function handler(req: any, res: any) {
     getListening(),
     getReading(),
   ]);
-  res.setHeader("Cache-Control", "s-maxage=120, stale-while-revalidate=600");
+  res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
   return res.status(200).json({
     watching: watching.data,
     listening: listening.data,

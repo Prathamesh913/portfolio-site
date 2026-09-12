@@ -250,7 +250,7 @@ export const handler = async () => {
     statusCode: 200,
     headers: {
       "Content-Type": "application/json",
-      "Cache-Control": "public, max-age=120, stale-while-revalidate=600",
+      "Cache-Control": "public, max-age=60, stale-while-revalidate=300",
     },
     body: JSON.stringify({
       watching: watching.data,

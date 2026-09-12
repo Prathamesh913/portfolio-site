@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { currentlyFallback, type CurrentlySnapshot } from "../data/currently";
 import { fetchCurrently } from "../lib/currently";
 
-const REFRESH_MS = 120_000;
+const REFRESH_MS = 60_000;
 
 function SourceBadge({ source, liveLabel }: { source: "live" | "snapshot"; liveLabel: string }) {
   const live = source === "live";
