@@ -1,11 +1,5 @@
 import type { BuildProject } from "./types";
 
-const placeholderMedia = (name: string, alt: string, aspectRatio = "4 / 3") => ({
-  src: `/media/placeholder/${name}.webp`,
-  alt,
-  aspectRatio,
-});
-
 const story = (body: string) => [{ kind: "text" as const, eyebrow: "Notes", body }];
 
 export const buildProjects: BuildProject[] = [
@@ -26,6 +20,23 @@ export const buildProjects: BuildProject[] = [
     isPlaceholder: false,
   },
   {
+    slug: "gamedock",
+    title: "GameDock",
+    tagline: "An Omarchy-native bar plugin that unifies games from Steam, Heroic, RetroArch, and RPCS3 into one compact dashboard.",
+    description:
+      "Search, filter, sort, favorite, and launch games directly — without opening a launcher UI first. Self-contained Quickshell/QML plugin that follows the Omarchy visual and theming system.",
+    status: "live",
+    version: "v0.1.0",
+    year: "2026",
+    cover: { src: "/media/case-studies/gamedock/01-product-preview.png", alt: "GameDock panel preview", aspectRatio: "16 / 9" },
+    gallery: [],
+    story: story("The making notes and project story will be documented here once ready."),
+    technologies: ["Quickshell / QML", "JavaScript", "Python 3 (stdlib)"],
+    repositoryUrl: "https://github.com/Prathamesh913/gamedock",
+    marketplaceUrl: "https://plugins.omarchy.org/plugin.html?id=io.github.prathamesh913.gamedock",
+    isPlaceholder: false,
+  },
+  {
     slug: "projectdock",
     title: "ProjectDock",
     tagline: "A fast, keyboard-first project launcher for Omarchy and Hyprland.",
@@ -33,7 +44,7 @@ export const buildProjects: BuildProject[] = [
       "Answers one question: what do I want to work on right now? Press SUPER+D, type a few characters, and projects filter instantly — open in your editor or run dev servers, tests, builds, and Git actions without leaving the keyboard. Auto-detects project types, with Hyprland workspace awareness.",
     status: "in progress",
     year: "2026",
-    cover: placeholderMedia("projectdock-cover", "Placeholder ProjectDock visual", "4 / 3"),
+    cover: { src: "/media/build/projectdock-cover.png", alt: "ProjectDock project cover", aspectRatio: "16 / 9" },
     gallery: [],
     story: story("The making notes and product details will be documented here."),
     technologies: ["Python (stdlib)", "GTK 4", "Hyprland"],
@@ -47,7 +58,7 @@ export const buildProjects: BuildProject[] = [
     description: "Looks at a software project and maps what it does, where that behavior lives, and how the important parts connect — so developers and AI agents find the right code faster. Reads read-only and writes one .codeatlas/ directory of machine-readable data plus readable docs, preserving uncertainty instead of guessing. Private beta, v0.5.0.",
     status: "active beta",
     year: "2026",
-    cover: placeholderMedia("codeatlas-cover", "Placeholder CodeAtlas visual", "4 / 3"),
+    cover: { src: "/media/build/codeatlas-cover.png", alt: "CodeAtlas project cover", aspectRatio: "16 / 9" },
     gallery: [],
     story: story("Details will be documented here."),
     technologies: ["To be updated"],
@@ -62,7 +73,7 @@ export const buildProjects: BuildProject[] = [
       "Real-time GPU shaders for the entire display — grayscale, warm paper tones, and high-contrast e-ink effects. Toggle with one click from the bar widget, a preset menu, keyboard shortcuts, or the command line.",
     status: "live",
     year: "2026",
-    cover: placeholderMedia("paper-mode-cover", "Placeholder Paper Mode visual", "4 / 3"),
+    cover: { src: "/media/build/papermode-cover.png", alt: "Paper Mode project cover", aspectRatio: "16 / 9" },
     gallery: [],
     story: story("Applies Hyprland screen shaders as a GPU post-processing pass, with no extra runtime. Three presets — grayscale, paper, e-ink — controlled from the bar widget, a right-click preset menu, keyboard shortcuts, or omarchy-shell IPC."),
     technologies: ["Quickshell / QML", "Hyprland screen shaders", "omarchy-shell IPC"],

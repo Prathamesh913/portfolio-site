@@ -343,6 +343,9 @@ function App() {
           <div className="collections-strip" role="list" tabIndex={0} aria-label={`Maker tools: scrollable list, ${toolProjects.length} tools`}>
             {toolProjects.map((project) => (
               <article className="coll-card" role="listitem" key={project.slug} id={project.slug}>
+                {project.cover && !project.cover.src.includes("/placeholder/") && (
+                  <img className="coll-cover coll-project-cover" src={project.cover.src} alt="" loading="lazy" decoding="async" />
+                )}
                 <h3 className="coll-title">{project.title}</h3>
                 <p className="coll-meta">
                   tool · {project.status === "live"

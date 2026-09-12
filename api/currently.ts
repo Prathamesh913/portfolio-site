@@ -2,6 +2,9 @@
 //
 // Env vars (all server-side, never exposed to the browser):
 //   TRAKT_CLIENT_ID, TRAKT_USERNAME            (public profile history; OAuth optional)
+//   TRAKT_CLIENT_SECRET, TRAKT_ACCESS_TOKEN, TRAKT_ACCESS_EXPIRES_AT,
+//     TRAKT_REFRESH_TOKEN                      (OAuth via `npm run trakt:auth`;
+//                                              reads /users/me regardless of privacy)
 //   SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REFRESH_TOKEN
 //   HARDCOVER_API_TOKEN
 //
@@ -40,18 +43,55 @@ const TIMEOUT = 8_000;
 const withTimeout = () => AbortSignal.timeout(TIMEOUT);
 
 // ---- Trakt: active scrobble first, then most recent history item ----
+// ---- Trakt auth: stored user access token first, opportunistic refresh,
+// anonymous client_id key last. Authenticated calls read /users/me, so they
+// see history regardless of profile-privacy toggles. Never throws.
+async function getTraktAccess(): Promise<string | null> {
+  const id = process.env.TRAKT_CLIENT_ID;
+  const secret = process.env.TRAKT_CLIENT_SECRET;
+  const storedAccess = process.env.TRAKT_ACCESS_TOKEN;
+  const accessExp = Number(process.env.TRAKT_ACCESS_EXPIRES_AT || 0);
+  if (storedAccess && Date.now() < accessExp - 60_000) return storedAccess;
+  const storedRefresh = process.env.TRAKT_REFRESH_TOKEN;
+  if (!id || !secret || !storedRefresh) return null;
+  try {
+    const res = await fetch("https://api.trakt.tv/oauth/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        refresh_token: storedRefresh,
+        client_id: id,
+        client_secret: secret,
+        redirect_uri: "http://127.0.0.1:3000/trakt-callback",
+        grant_type: "refresh_token",
+      }),
+      signal: withTimeout(),
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { access_token?: string };
+    return body.access_token ?? null;
+  } catch {
+    return null;
+  }
+}
+
 async function getWatching(): Promise<{ data: Watching; live: boolean }> {
   const clientId = process.env.TRAKT_CLIENT_ID;
   const username = process.env.TRAKT_USERNAME;
-  if (!clientId || !username) return { data: null, live: false };
-  const headers = {
+  const accessToken = await getTraktAccess();
+  const userPath = accessToken ? "me" : username ? encodeURIComponent(username) : null;
+  if (!userPath || (!accessToken && !clientId)) return { data: null, live: false };
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "trakt-api-version": "2",
-    "trakt-api-key": clientId,
+    // Trakt sits behind bot protection that challenges default server fetch
+    // user-agents — identify or calls get 403'd with an HTML block page.
+    "User-Agent": "portfolio-currently/1.0",
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : { "trakt-api-key": clientId }),
   };
   try {
     const watchingRes = await fetch(
-      `https://api.trakt.tv/users/${encodeURIComponent(username)}/watching`,
+      `https://api.trakt.tv/users/${userPath}/watching`,
       { headers, signal: withTimeout() }
     );
     if (watchingRes.ok) {
@@ -88,7 +128,7 @@ async function getWatching(): Promise<{ data: Watching; live: boolean }> {
       }
     }
     const histRes = await fetch(
-      `https://api.trakt.tv/users/${encodeURIComponent(username)}/history?limit=1&extended=full`,
+      `https://api.trakt.tv/users/${userPath}/history?limit=1&extended=full`,
       { headers, signal: withTimeout() }
     );
     if (!histRes.ok) return { data: null, live: false };
