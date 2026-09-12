@@ -6,6 +6,7 @@ import type { CaseStudy } from "./data/caseStudies";
 import { CaseStudyPage } from "./components/CaseStudyPage";
 import { CurrentlySection } from "./components/CurrentlySection";
 import { GithubActivity } from "./components/GithubActivity";
+import { RecentlyWatched } from "./components/RecentlyWatched";
 import { SkillIcon } from "./components/SkillIcons";
 import { ThemeToggle } from "./components/ThemeToggle";
 
@@ -304,6 +305,8 @@ function App() {
         </section>
 
         <CurrentlySection />
+
+        <RecentlyWatched />
 
         <GithubActivity />
 

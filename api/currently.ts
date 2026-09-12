@@ -45,7 +45,7 @@ const withTimeout = () => AbortSignal.timeout(TIMEOUT);
 // ---- Trakt: active scrobble first, then most recent history item ----
 // Operational telemetry for the Watching card (no secrets — stage names and
 // HTTP statuses only). Lets /api/currently itself say why Trakt failed.
-type TraktDebug = { stage: string; status: number | string; authed: boolean };
+type TraktDebug = { stage: string; status: number | string; authed: boolean; reauth: boolean };
 
 // ---- Trakt auth: stored user access token first, opportunistic refresh,
 // anonymous client_id key last. Authenticated calls read /users/me, so they
@@ -54,22 +54,27 @@ async function getTraktAccess(): Promise<{
   token: string | null;
   stage: string;
   status: number | string;
+  reauth: boolean;
 }> {
   const id = process.env.TRAKT_CLIENT_ID;
   const secret = process.env.TRAKT_CLIENT_SECRET;
   const storedAccess = process.env.TRAKT_ACCESS_TOKEN;
   const accessExp = Number(process.env.TRAKT_ACCESS_EXPIRES_AT || 0);
   if (storedAccess && Date.now() < accessExp - 60_000) {
-    return { token: storedAccess, stage: "stored-access", status: "fresh" };
+    return { token: storedAccess, stage: "stored-access", status: "fresh", reauth: false };
   }
   const storedRefresh = process.env.TRAKT_REFRESH_TOKEN;
   if (!id || !secret || !storedRefresh) {
-    return { token: null, stage: "unconfigured", status: "missing-vars" };
+    return { token: null, stage: "unconfigured", status: "missing-vars", reauth: false };
   }
   try {
     const res = await fetch("https://api.trakt.tv/oauth/token", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "trakt-api-version": "2",
+        "User-Agent": "portfolio-currently/1.0",
+      },
       body: JSON.stringify({
         refresh_token: storedRefresh,
         client_id: id,
@@ -79,13 +84,20 @@ async function getTraktAccess(): Promise<{
       }),
       signal: withTimeout(),
     });
-    if (!res.ok) return { token: null, stage: "refresh", status: res.status };
+    if (!res.ok) {
+      // invalid_grant => the single-use refresh token was already consumed.
+      const text = await res.text().catch(() => "");
+      const reauth =
+        res.status === 400 || res.status === 401 || res.status === 403 || text.includes("invalid_grant");
+      if (reauth) console.warn("[trakt] stored refresh token rejected — re-run `npm run trakt:auth`");
+      return { token: null, stage: "refresh", status: res.status, reauth };
+    }
     const body = (await res.json()) as { access_token?: string };
     return body.access_token
-      ? { token: body.access_token, stage: "refresh", status: res.status }
-      : { token: null, stage: "refresh", status: "no-token-in-response" };
+      ? { token: body.access_token, stage: "refresh", status: res.status, reauth: false }
+      : { token: null, stage: "refresh", status: "no-token-in-response", reauth: false };
   } catch {
-    return { token: null, stage: "refresh", status: "network-error" };
+    return { token: null, stage: "refresh", status: "network-error", reauth: false };
   }
 }
 
@@ -93,7 +105,12 @@ async function getWatching(): Promise<{ data: Watching; live: boolean; debug: Tr
   const clientId = process.env.TRAKT_CLIENT_ID;
   const username = process.env.TRAKT_USERNAME;
   const auth = await getTraktAccess();
-  const debug: TraktDebug = { stage: auth.stage, status: auth.status, authed: !!auth.token };
+  const debug: TraktDebug = {
+    stage: auth.stage,
+    status: auth.status,
+    authed: !!auth.token,
+    reauth: auth.reauth,
+  };
   const accessToken = auth.token;
   const userPath = accessToken ? "me" : username ? encodeURIComponent(username) : null;
   if (!userPath || (!accessToken && !clientId)) return { data: null, live: false, debug };
@@ -103,7 +120,10 @@ async function getWatching(): Promise<{ data: Watching; live: boolean; debug: Tr
     // Trakt sits behind bot protection that challenges default server fetch
     // user-agents — identify or calls get 403'd with an HTML block page.
     "User-Agent": "portfolio-currently/1.0",
-    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : { "trakt-api-key": clientId }),
+    // Trakt requires BOTH the api-key and the Bearer token on authenticated
+    // calls — Bearer alone is answered with a 403 HTML challenge page.
+    "trakt-api-key": clientId,
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
   };
   try {
     const watchingRes = await fetch(
@@ -112,7 +132,8 @@ async function getWatching(): Promise<{ data: Watching; live: boolean; debug: Tr
     );
     debug.stage = accessToken ? "authed-watching" : "anon-watching";
     debug.status = watchingRes.status;
-    if (watchingRes.ok) {
+    // 204 No Content means "nothing scrobbling" — there is no body to parse.
+    if (watchingRes.ok && watchingRes.status !== 204) {
       const w = (await watchingRes.json()) as Record<string, any>;
       if (w && (w.show || w.movie)) {
         if (w.show) {
@@ -325,6 +346,11 @@ export default async function handler(req: any, res: any) {
     getReading(),
   ]);
   res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
+  // Trakt refresh tokens are single-use and rotate; with no durable store the
+  // rotated token is lost, so after ~7 days the stored one is rejected. Flag it
+  // so the owner knows to re-run `npm run trakt:auth`, instead of silently
+  // falling back forever.
+  const traktReauth = watching.debug.reauth;
   return res.status(200).json({
     watching: watching.data,
     listening: listening.data,
@@ -336,6 +362,7 @@ export default async function handler(req: any, res: any) {
       hardcover: reading.live ? "live" : "snapshot",
     },
     ...(listening.reauth ? { spotifyReauthRequired: true } : {}),
+    ...(traktReauth ? { traktReauthRequired: true } : {}),
     traktDebug: watching.debug,
   });
 }

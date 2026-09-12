@@ -90,7 +90,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 
 /* Mono for labels and headings; sans for body text */
 .wordmark, .site-nav, .skip-link,
-.intro h1, .work h2, .currently h2, .github h2, .smaller h2, .experience h2, .skills h2, .toolkit h2, .outside h2,
+.intro h1, .work h2, .currently h2, .github h2, .recently h2, .smaller h2, .experience h2, .skills h2, .toolkit h2, .outside h2,
 .work-row h3, .smaller-row h3, .exp-row h3, .skills-group h3,
 .work-status, .smaller-status, .exp-period, .now-ticker__label, .btn-primary {
   font-family: var(--font);
@@ -191,12 +191,12 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 }
 
 /* Section labels — orange signal, mono, uppercase */
-.work h2, .currently h2, .github h2, .collections h2, .smaller h2, .experience h2, .skills h2, .toolkit h2, .outside h2 {
+.work h2, .currently h2, .github h2, .recently h2, .collections h2, .smaller h2, .experience h2, .skills h2, .toolkit h2, .outside h2 {
   margin: 0; padding-top: 1.5rem; border-top: 1px solid var(--border);
   font-size: 0.78rem; font-weight: 700; color: var(--primary);
   text-transform: uppercase; letter-spacing: 0.1em;
 }
-.work, .currently, .github, .collections, .smaller, .experience, .skills, .toolkit, .outside { padding-bottom: 2rem; }
+.work, .currently, .github, .recently, .collections, .smaller, .experience, .skills, .toolkit, .outside { padding-bottom: 2rem; }
 
 /* WORK — the visual center */
 .work-list { border-bottom: 1px solid var(--border); }
@@ -567,6 +567,59 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 
 @media (max-width: 700px) {
   .currently-grid { grid-template-columns: 1fr; }
+}
+
+/* RECENTLY WATCHED — compact Trakt media strip */
+.recently-note { margin: 0.6rem 0 0; font-size: 0.82rem; color: var(--muted); max-width: 38rem; }
+.recently-strip {
+  display: flex; gap: 1rem;
+  margin-top: 1rem; padding: 0.25rem 0.25rem 0.9rem;
+  overflow-x: auto; scroll-snap-type: x proximity;
+}
+.recently-strip:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; border-radius: var(--radius); }
+.recently-card { flex: 0 0 clamp(8.5rem, 30vw, 10.5rem); min-width: 0; margin: 0; scroll-snap-align: start; }
+.recently-card__link {
+  display: flex; flex-direction: column; gap: 0.6rem;
+  border-radius: var(--radius); color: inherit;
+}
+.recently-card__link:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.recently-card__media {
+  display: grid; place-items: center;
+  aspect-ratio: 2 / 3; width: 100%; overflow: hidden;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel);
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+.recently-card__link:hover .recently-card__media { border-color: var(--primary); transform: translateY(-2px); }
+.recently-card__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.recently-card__fallback {
+  font-family: var(--font); font-size: 1.6rem; font-weight: 700; color: var(--muted);
+}
+.recently-card__body { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.recently-card__title {
+  font-family: var(--font); font-size: 0.82rem; font-weight: 700; letter-spacing: -0.01em;
+  color: var(--ink); line-height: 1.3; overflow-wrap: break-word;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.recently-card__meta {
+  font-size: 0.74rem; color: var(--muted); line-height: 1.4; overflow-wrap: break-word;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.recently-card__time { font-family: var(--font); font-size: 0.7rem; color: var(--info); }
+.recently-profile { margin: 0; font-size: 0.78rem; text-align: right; }
+.recently-profile a { border-bottom: 1px solid var(--muted); transition: color 150ms ease, border-color 150ms ease; }
+.recently-profile a:hover { color: var(--primary); border-color: var(--primary); }
+.recently-skeleton {
+  background: var(--element); display: block; width: 100%;
+  animation: recently-pulse 1.6s ease-in-out infinite;
+}
+.recently-skeleton--line { height: 0.85rem; border-radius: 4px; }
+@keyframes recently-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+@media (max-width: 600px) {
+  .recently-card { flex-basis: 8rem; }
 }
 
 /* GITHUB ACTIVITY — contribution calendar (orange ramp, theme-aware) */
