@@ -43,17 +43,29 @@ const TIMEOUT = 8_000;
 const withTimeout = () => AbortSignal.timeout(TIMEOUT);
 
 // ---- Trakt: active scrobble first, then most recent history item ----
+// Operational telemetry for the Watching card (no secrets — stage names and
+// HTTP statuses only). Lets /api/currently itself say why Trakt failed.
+type TraktDebug = { stage: string; status: number | string; authed: boolean };
+
 // ---- Trakt auth: stored user access token first, opportunistic refresh,
 // anonymous client_id key last. Authenticated calls read /users/me, so they
 // see history regardless of profile-privacy toggles. Never throws.
-async function getTraktAccess(): Promise<string | null> {
+async function getTraktAccess(): Promise<{
+  token: string | null;
+  stage: string;
+  status: number | string;
+}> {
   const id = process.env.TRAKT_CLIENT_ID;
   const secret = process.env.TRAKT_CLIENT_SECRET;
   const storedAccess = process.env.TRAKT_ACCESS_TOKEN;
   const accessExp = Number(process.env.TRAKT_ACCESS_EXPIRES_AT || 0);
-  if (storedAccess && Date.now() < accessExp - 60_000) return storedAccess;
+  if (storedAccess && Date.now() < accessExp - 60_000) {
+    return { token: storedAccess, stage: "stored-access", status: "fresh" };
+  }
   const storedRefresh = process.env.TRAKT_REFRESH_TOKEN;
-  if (!id || !secret || !storedRefresh) return null;
+  if (!id || !secret || !storedRefresh) {
+    return { token: null, stage: "unconfigured", status: "missing-vars" };
+  }
   try {
     const res = await fetch("https://api.trakt.tv/oauth/token", {
       method: "POST",
@@ -67,20 +79,24 @@ async function getTraktAccess(): Promise<string | null> {
       }),
       signal: withTimeout(),
     });
-    if (!res.ok) return null;
+    if (!res.ok) return { token: null, stage: "refresh", status: res.status };
     const body = (await res.json()) as { access_token?: string };
-    return body.access_token ?? null;
+    return body.access_token
+      ? { token: body.access_token, stage: "refresh", status: res.status }
+      : { token: null, stage: "refresh", status: "no-token-in-response" };
   } catch {
-    return null;
+    return { token: null, stage: "refresh", status: "network-error" };
   }
 }
 
-async function getWatching(): Promise<{ data: Watching; live: boolean }> {
+async function getWatching(): Promise<{ data: Watching; live: boolean; debug: TraktDebug }> {
   const clientId = process.env.TRAKT_CLIENT_ID;
   const username = process.env.TRAKT_USERNAME;
-  const accessToken = await getTraktAccess();
+  const auth = await getTraktAccess();
+  const debug: TraktDebug = { stage: auth.stage, status: auth.status, authed: !!auth.token };
+  const accessToken = auth.token;
   const userPath = accessToken ? "me" : username ? encodeURIComponent(username) : null;
-  if (!userPath || (!accessToken && !clientId)) return { data: null, live: false };
+  if (!userPath || (!accessToken && !clientId)) return { data: null, live: false, debug };
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "trakt-api-version": "2",
@@ -94,6 +110,8 @@ async function getWatching(): Promise<{ data: Watching; live: boolean }> {
       `https://api.trakt.tv/users/${userPath}/watching`,
       { headers, signal: withTimeout() }
     );
+    debug.stage = accessToken ? "authed-watching" : "anon-watching";
+    debug.status = watchingRes.status;
     if (watchingRes.ok) {
       const w = (await watchingRes.json()) as Record<string, any>;
       if (w && (w.show || w.movie)) {
@@ -113,6 +131,7 @@ async function getWatching(): Promise<{ data: Watching; live: boolean }> {
               isNow: true,
             },
             live: true,
+            debug,
           };
         }
         return {
@@ -124,6 +143,7 @@ async function getWatching(): Promise<{ data: Watching; live: boolean }> {
             isNow: true,
           },
           live: true,
+          debug,
         };
       }
     }
@@ -131,9 +151,11 @@ async function getWatching(): Promise<{ data: Watching; live: boolean }> {
       `https://api.trakt.tv/users/${userPath}/history?limit=1&extended=full`,
       { headers, signal: withTimeout() }
     );
-    if (!histRes.ok) return { data: null, live: false };
+    debug.stage = accessToken ? "authed-history" : "anon-history";
+    debug.status = histRes.status;
+    if (!histRes.ok) return { data: null, live: false, debug };
     const [item] = (await histRes.json()) as Array<Record<string, any>>;
-    if (!item) return { data: null, live: false };
+    if (!item) return { data: null, live: false, debug };
     if (item.type === "movie" && item.movie) {
       return {
         data: {
@@ -144,6 +166,7 @@ async function getWatching(): Promise<{ data: Watching; live: boolean }> {
           url: item.movie.ids?.slug ? `https://trakt.tv/movies/${item.movie.ids.slug}` : undefined,
         },
         live: true,
+        debug,
       };
     }
     if (item.show) {
@@ -162,11 +185,13 @@ async function getWatching(): Promise<{ data: Watching; live: boolean }> {
           url: item.show.ids?.slug ? `https://trakt.tv/shows/${item.show.ids.slug}` : undefined,
         },
         live: true,
+        debug,
       };
     }
-    return { data: null, live: false };
+    return { data: null, live: false, debug };
   } catch {
-    return { data: null, live: false };
+    debug.stage = "network-error";
+    return { data: null, live: false, debug };
   }
 }
 
@@ -311,5 +336,6 @@ export default async function handler(req: any, res: any) {
       hardcover: reading.live ? "live" : "snapshot",
     },
     ...(listening.reauth ? { spotifyReauthRequired: true } : {}),
+    traktDebug: watching.debug,
   });
 }
