@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { blogPosts, blogSeries, buildProjects, experience, galleryItems, now, outside, skills, toolkit } from "./data";
+import { blogPosts, blogSeries, buildProjects, experience, galleryItems, now, skills, toolkit } from "./data";
 import type { BlogPost, GalleryItem } from "./data";
 import { allCaseStudies, CASE_ORDER } from "./data/caseStudies";
 import type { CaseStudy } from "./data/caseStudies";
 import { CaseStudyPage } from "./components/CaseStudyPage";
 import { CurrentlySection } from "./components/CurrentlySection";
 import { GithubActivity } from "./components/GithubActivity";
-import { RecentlyWatched } from "./components/RecentlyWatched";
+import { OutsideOfWork } from "./components/OutsideOfWork";
 import { SkillIcon } from "./components/SkillIcons";
 import { ThemeToggle } from "./components/ThemeToggle";
 
@@ -306,8 +306,6 @@ function App() {
 
         <CurrentlySection />
 
-        <RecentlyWatched />
-
         <GithubActivity />
 
         <section className="work section-frame" id="work" aria-label="Work">
@@ -465,10 +463,7 @@ function App() {
           </div>
         </section>
 
-        <section className="outside section-frame" aria-label={outside.heading}>
-          <h2>{outside.heading}</h2>
-          <p>{outside.body}</p>
-        </section>
+        <OutsideOfWork />
 
         <footer className="site-footer section-frame" id="contact">
           <p>

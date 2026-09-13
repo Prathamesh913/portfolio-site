@@ -83,7 +83,10 @@ function Card({ item }: { item: RecentItem }) {
 
 function Skeleton() {
   return (
-    <section className="recently section-frame" aria-hidden="true">
+    <section className="oow-block oow-block--watching" aria-hidden="true">
+      <div className="oow-block__head">
+        <h3>Watching</h3>
+      </div>
       <div className="recently-strip">
         {Array.from({ length: 6 }).map((_, i) => (
           <div className="recently-card" key={i}>
@@ -118,15 +121,14 @@ export function RecentlyWatched() {
   if (!snapshot || snapshot.items.length === 0) return null;
 
   return (
-    <section className="recently section-frame" aria-label="Recently watched">
-      <div className="currently-head">
-        <h2>Recently Watched</h2>
-        <p className="currently-updated">
+    <section className="oow-block oow-block--watching" aria-labelledby="oow-watching">
+      <div className="oow-block__head">
+        <h3 id="oow-watching">Watching</h3>
+        <p className="oow-block__meta">
           {snapshot.source === "cached" ? "Cached · " : ""}
           {snapshot.items.length} recent items
         </p>
       </div>
-      <p className="recently-note">Some of the movies and shows I've watched recently.</p>
       <div
         className="recently-strip"
         role="list"

@@ -90,7 +90,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 
 /* Mono for labels and headings; sans for body text */
 .wordmark, .site-nav, .skip-link,
-.intro h1, .work h2, .currently h2, .github h2, .recently h2, .smaller h2, .experience h2, .skills h2, .toolkit h2, .outside h2,
+.intro h1, .work h2, .currently h2, .github h2, .recently h2, .outside-of-work h2, .smaller h2, .experience h2, .skills h2, .toolkit h2, .outside h2,
 .work-row h3, .smaller-row h3, .exp-row h3, .skills-group h3,
 .work-status, .smaller-status, .exp-period, .now-ticker__label, .btn-primary {
   font-family: var(--font);
@@ -191,7 +191,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 }
 
 /* Section labels — orange signal, mono, uppercase */
-.work h2, .currently h2, .github h2, .recently h2, .collections h2, .smaller h2, .experience h2, .skills h2, .toolkit h2, .outside h2 {
+.work h2, .currently h2, .github h2, .recently h2, .outside-of-work h2, .collections h2, .smaller h2, .experience h2, .skills h2, .toolkit h2, .outside h2 {
   margin: 0; padding-top: 1.5rem; border-top: 1px solid var(--border);
   font-size: 0.78rem; font-weight: 700; color: var(--primary);
   text-transform: uppercase; letter-spacing: 0.1em;
@@ -620,6 +620,80 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 
 @media (max-width: 600px) {
   .recently-card { flex-basis: 8rem; }
+}
+
+/* OUTSIDE OF WORK — personal archive (watching / photos / books / youtube) */
+.outside-of-work { padding-bottom: 2rem; }
+.oow-intro { margin: 0.6rem 0 0; font-size: 0.85rem; color: var(--ink-soft); max-width: 40rem; }
+.outside-of-work h3 {
+  margin: 0; font-family: var(--font); font-size: 0.76rem; font-weight: 700;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em;
+}
+.oow-block { padding-top: 2rem; }
+.oow-block__head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.oow-block__meta { margin: 0; font-family: var(--font); font-size: 0.72rem; color: var(--muted); }
+.oow-block__link { font-size: 0.78rem; border-bottom: 1px solid var(--muted); transition: color 150ms ease, border-color 150ms ease; }
+.oow-block__link:hover { color: var(--primary); border-color: var(--primary); }
+.oow-block__note { margin: 0.5rem 0 0; font-size: 0.82rem; color: var(--muted); }
+
+/* Photos — horizontal editorial shelf */
+.oow-photos {
+  display: flex; gap: 1rem; margin-top: 1rem; padding: 0.25rem 0.25rem 0.9rem;
+  overflow-x: auto; scroll-snap-type: x proximity;
+}
+.oow-photos:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; border-radius: var(--radius); }
+.oow-photo-card { flex: 0 0 clamp(9rem, 26vw, 11rem); min-width: 0; margin: 0; scroll-snap-align: start; }
+.oow-photo {
+  appearance: none; display: block; width: 100%; padding: 0; cursor: zoom-in;
+  overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--panel); transition: border-color 150ms ease, transform 150ms ease;
+}
+.oow-photo:hover { border-color: var(--primary); transform: translateY(-2px); }
+.oow-photo:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.oow-photo img { width: 100%; height: auto; aspect-ratio: 9 / 16; object-fit: cover; display: block; }
+
+/* Books — cover shelf */
+.oow-books {
+  display: flex; gap: 1rem; margin-top: 1rem; padding: 0.25rem 0.25rem 0.9rem;
+  overflow-x: auto; scroll-snap-type: x proximity;
+}
+.oow-books:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; border-radius: var(--radius); }
+.oow-book { flex: 0 0 clamp(7rem, 22vw, 8.75rem); margin: 0; min-width: 0; scroll-snap-align: start; }
+.oow-book img {
+  width: 100%; height: auto; display: block;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--panel);
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+.oow-book:hover img { border-color: var(--primary); transform: translateY(-2px); }
+.oow-book figcaption { display: flex; flex-direction: column; gap: 0.12rem; margin-top: 0.55rem; }
+.oow-book__title { font-family: var(--font); font-size: 0.78rem; font-weight: 700; color: var(--ink); line-height: 1.3; overflow-wrap: break-word; }
+.oow-book__author { font-size: 0.72rem; color: var(--muted); }
+
+/* YouTube — video cards */
+.oow-videos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1rem; }
+.oow-video {
+  display: flex; flex-direction: column; overflow: hidden;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel);
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+.oow-video:hover { border-color: var(--primary); transform: translateY(-2px); }
+.oow-video:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.oow-video__media { position: relative; display: block; aspect-ratio: 16 / 9; overflow: hidden; background: var(--element); }
+.oow-video__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.oow-video__kind {
+  position: absolute; top: 0.5rem; left: 0.5rem;
+  padding: 0.18rem 0.42rem; border-radius: 4px; background: rgba(0, 0, 0, 0.62);
+  font-family: var(--font); font-size: 0.6rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em; color: #fff;
+}
+.oow-video__body { display: flex; flex-direction: column; gap: 0.35rem; padding: 0.7rem 0.8rem 0.85rem; }
+.oow-video__title { font-family: var(--font); font-size: 0.82rem; font-weight: 700; color: var(--ink); line-height: 1.35; }
+.oow-video__title--short { color: var(--muted); }
+.oow-video__tags { display: flex; flex-wrap: wrap; gap: 0.35rem; font-family: var(--font); font-size: 0.68rem; color: var(--muted); }
+
+@media (max-width: 600px) {
+  .oow-videos { grid-template-columns: 1fr; }
+  .oow-book { flex-basis: 6.5rem; }
 }
 
 /* GITHUB ACTIVITY — contribution calendar (orange ramp, theme-aware) */
