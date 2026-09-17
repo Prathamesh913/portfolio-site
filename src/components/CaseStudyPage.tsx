@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import type { CaseStudy } from "../data/caseStudies";
 import { CASE_ORDER, allCaseStudies } from "../data/caseStudies";
-import { ThemeToggle } from "./ThemeToggle";
+import { ImageLightbox, useImageLightbox } from "./ImageLightbox";
+import { SiteHeader } from "./SiteHeader";
 
 function getRelated(slug: string): { prev?: CaseStudy; next?: CaseStudy } {
   const i = CASE_ORDER.indexOf(slug);
@@ -16,6 +17,58 @@ function getRelated(slug: string): { prev?: CaseStudy; next?: CaseStudy } {
 function isLandscapeGallery(gallery: CaseStudy["galleries"][number]): boolean {
   const first = gallery.screens[0];
   return !!first && !!first.w && !!first.h && first.w >= first.h;
+}
+
+function CaseStudyGallery({ gallery }: { gallery: CaseStudy["galleries"][number] }) {
+  const entries = gallery.screens.map((s) => ({
+    src: s.src,
+    alt: s.alt,
+    w: s.w,
+    h: s.h,
+    title: s.alt,
+    description: s.caption && s.caption !== s.alt ? s.caption : undefined,
+  }));
+  const lightbox = useImageLightbox(`cs-${gallery.id}`);
+
+  return (
+    <div className="cs-gallery" id={`cs-gallery-${gallery.id}`}>
+      <h3>{gallery.title}</h3>
+      {gallery.intro && <p className="cs-gallery-intro">{gallery.intro}</p>}
+      <div
+        className={`cs-screens${isLandscapeGallery(gallery) ? " cs-screens--landscape" : " cs-screens--portrait"}`}
+        role="list"
+        tabIndex={0}
+        aria-label={`${gallery.title}: scrollable image gallery, ${gallery.screens.length} images`}
+      >
+        {gallery.screens.map((s, i) => (
+          <figure className="cs-screen" role="listitem" key={s.src}>
+            <button
+              type="button"
+              id={`cs-${gallery.id}-${i}`}
+              className="cs-screen__btn"
+              aria-haspopup="dialog"
+              aria-label={`Open larger view: ${s.alt}`}
+              onClick={() => lightbox.open(i)}
+            >
+              <img src={s.src} alt={s.alt} loading="lazy" decoding="async" width={s.w} height={s.h} />
+            </button>
+            <figcaption>
+              <span className="cs-screen-name">{s.alt}</span>
+              {s.caption && s.caption !== s.alt && s.caption}
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+      {lightbox.index !== null && (
+        <ImageLightbox
+          entries={entries}
+          index={lightbox.index}
+          onClose={lightbox.close}
+          onNavigate={lightbox.navigate}
+        />
+      )}
+    </div>
+  );
 }
 
 export function CaseStudyPage({ data }: { data: CaseStudy }) {
@@ -36,18 +89,17 @@ export function CaseStudyPage({ data }: { data: CaseStudy }) {
     <div className="site-shell cs-page">
       <a className="skip-link" href="#cs-overview">Skip to overview</a>
 
-      <header className="site-header">
-        <a className="wordmark" href="#/" aria-label="Back to Prathamesh home">← prathamesh</a>
-        <div className="site-header__group">
-          <nav className="site-nav" aria-label="Secondary navigation">
-            <a href={data.sourceUrl} target="_blank" rel="noreferrer" aria-label={`View original ${data.title} project (opens in new tab)`}>original ↗</a>
-            {data.marketplaceUrl && (
-              <a href={data.marketplaceUrl} target="_blank" rel="noreferrer" aria-label={`View ${data.title} on the Omarchy marketplace (opens in new tab)`}>marketplace ↗</a>
-            )}
-          </nav>
-          <ThemeToggle />
-        </div>
-      </header>
+      <SiteHeader
+        wordmarkHref="#/"
+        wordmarkLabel="Back to Prathamesh home"
+        wordmarkText={<>← prathamesh</>}
+        navLabel="Secondary navigation"
+      >
+        <a href={data.sourceUrl} target="_blank" rel="noreferrer" aria-label={`View original ${data.title} project (opens in new tab)`}>original ↗</a>
+        {data.marketplaceUrl && (
+          <a href={data.marketplaceUrl} target="_blank" rel="noreferrer" aria-label={`View ${data.title} on the Omarchy marketplace (opens in new tab)`}>marketplace ↗</a>
+        )}
+      </SiteHeader>
 
       <main id="main-content" className="cs">
         <header className="cs-header section-frame">
@@ -87,26 +139,7 @@ export function CaseStudyPage({ data }: { data: CaseStudy }) {
             <h2 id="cs-galleries-heading">{galleriesHeading}</h2>
             {data.galleriesIntro && <p className="cs-galleries-intro">{data.galleriesIntro}</p>}
             {data.galleries.map((gallery) => (
-              <div className="cs-gallery" key={gallery.id} id={`cs-gallery-${gallery.id}`}>
-                <h3>{gallery.title}</h3>
-                {gallery.intro && <p className="cs-gallery-intro">{gallery.intro}</p>}
-                <div
-                  className={`cs-screens${isLandscapeGallery(gallery) ? " cs-screens--landscape" : " cs-screens--portrait"}`}
-                  role="list"
-                  tabIndex={0}
-                  aria-label={`${gallery.title}: scrollable image gallery, ${gallery.screens.length} images`}
-                >
-                  {gallery.screens.map((s) => (
-                    <figure className="cs-screen" role="listitem" key={s.src}>
-                      <img src={s.src} alt={s.alt} loading="lazy" decoding="async" width={s.w} height={s.h} />
-                      <figcaption>
-                        <span className="cs-screen-name">{s.alt}</span>
-                        {s.caption && s.caption !== s.alt && s.caption}
-                      </figcaption>
-                    </figure>
-                  ))}
-                </div>
-              </div>
+              <CaseStudyGallery key={gallery.id} gallery={gallery} />
             ))}
             {data.omittedNote && (
               <div className="cs-omitted">

@@ -16,6 +16,8 @@ export type CurrentlyWatching = {
   watchedAt?: string;
   /** Deep link, e.g. https://trakt.tv/movies/dune-part-two-2024 */
   url?: string;
+  /** Proxied Trakt poster path (via /api/trakt/image) when artwork is available. */
+  poster?: string;
   /** True when Trakt reports an active scrobble rather than history. */
   isNow?: boolean;
 };

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { fetchRecentWatched, type RecentItem, type RecentSnapshot } from "../lib/trakt";
+import type { RecentItem } from "../lib/trakt";
+import { recentTitle, useRecentWatched } from "../lib/traktStore";
 
 function relativeTime(iso: string): string {
   const then = Date.parse(iso);
@@ -32,12 +32,8 @@ function episodeMeta(item: Extract<RecentItem, { type: "episode" }>): string {
   return parts.join(" · ");
 }
 
-function titleOf(item: RecentItem): string {
-  return item.type === "movie" ? item.title : item.showTitle;
-}
-
 function Card({ item }: { item: RecentItem }) {
-  const title = titleOf(item);
+  const title = recentTitle(item);
   const meta = item.type === "episode" ? episodeMeta(item) : item.year ? String(item.year) : "";
   const alt = item.type === "movie" ? `Poster for ${item.title}` : `Poster for ${item.showTitle}`;
 
@@ -102,20 +98,7 @@ function Skeleton() {
 }
 
 export function RecentlyWatched() {
-  const [snapshot, setSnapshot] = useState<RecentSnapshot | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchRecentWatched().then((data) => {
-      if (cancelled) return;
-      setSnapshot(data);
-      setLoading(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { snapshot, loading } = useRecentWatched();
 
   if (loading) return <Skeleton />;
   if (!snapshot || snapshot.items.length === 0) return null;
@@ -136,7 +119,7 @@ export function RecentlyWatched() {
         aria-label={`Recently watched: scrollable list, ${snapshot.items.length} items`}
       >
         {snapshot.items.map((item) => (
-          <Card item={item} key={`${item.type}-${item.watchedAt}-${titleOf(item)}`} />
+          <Card item={item} key={`${item.type}-${item.watchedAt}-${recentTitle(item)}`} />
         ))}
       </div>
       {snapshot.profileUrl && (

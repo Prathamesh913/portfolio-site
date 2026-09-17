@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { blogPosts, blogSeries, buildProjects, experience, galleryItems, now, skills, toolkit } from "./data";
 import type { BlogPost, GalleryItem } from "./data";
 import { allCaseStudies, CASE_ORDER } from "./data/caseStudies";
@@ -6,9 +6,10 @@ import type { CaseStudy } from "./data/caseStudies";
 import { CaseStudyPage } from "./components/CaseStudyPage";
 import { CurrentlySection } from "./components/CurrentlySection";
 import { GithubActivity } from "./components/GithubActivity";
+import { ImageLightbox, useImageLightbox } from "./components/ImageLightbox";
 import { OutsideOfWork } from "./components/OutsideOfWork";
 import { SkillIcon } from "./components/SkillIcons";
-import { ThemeToggle } from "./components/ThemeToggle";
+import { SiteHeader } from "./components/SiteHeader";
 
 const GITHUB_URL = "https://github.com/Prathamesh913";
 
@@ -24,6 +25,15 @@ function getCaseSlug(): string | null {
 
 function isNonEmpty(value: string | undefined): value is string {
   return !!value && value.trim().length > 0 && value.trim().toLowerCase() !== "placeholder";
+}
+
+/** Render `**metric**` spans as emphasized, non-color-only text. */
+function renderEmphasis(text: string): ReactNode[] {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith("**") && part.endsWith("**")
+      ? <strong className="exp-metric" key={i}>{part.slice(2, -2)}</strong>
+      : part
+  );
 }
 
 type ArchiveView = "gallery" | "blogs";
@@ -66,104 +76,32 @@ function galleryMeta(item: GalleryItem): string {
   return [item.type, item.year, item.device].filter((part): part is string => !!part).join(" · ");
 }
 
-function GalleryLightbox({ items, index, onClose, onNavigate }: {
-  items: GalleryItem[];
-  index: number;
-  onClose: () => void;
-  onNavigate: (index: number) => void;
-}) {
-  const item = items[index];
-  const dialogRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { e.preventDefault(); onClose(); }
-      else if (e.key === "ArrowRight") { e.preventDefault(); onNavigate((index + 1) % items.length); }
-      else if (e.key === "ArrowLeft") { e.preventDefault(); onNavigate((index - 1 + items.length) % items.length); }
-      else if (e.key === "Tab" && dialogRef.current) {
-        const focusable = Array.from(
-          dialogRef.current.querySelectorAll<HTMLElement>("button, [href], [tabindex]:not([tabindex='-1'])")
-        ).filter((el) => !el.hasAttribute("disabled"));
-        if (focusable.length === 0) return;
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      }
-    };
-    document.addEventListener("keydown", onKeyDown);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    dialogRef.current?.querySelector<HTMLElement>("button")?.focus();
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [index, items.length, onClose, onNavigate]);
-
-  return (
-    <div className="gallery-lightbox" role="dialog" aria-modal="true" aria-labelledby="gallery-lightbox-title" onClick={onClose}>
-      <div className="gallery-lightbox__panel" ref={dialogRef} onClick={(e) => e.stopPropagation()}>
-        <div className="gallery-lightbox__bar">
-          <p className="gallery-lightbox__count">{index + 1} / {items.length}</p>
-          <button type="button" className="gallery-lightbox__btn" onClick={onClose} aria-label="Close larger view">Close ✕</button>
-        </div>
-        <img
-          className="gallery-lightbox__img"
-          src={item.image.src}
-          alt=""
-          width={item.image.w}
-          height={item.image.h}
-          decoding="async"
-        />
-        <h3 className="gallery-lightbox__title" id="gallery-lightbox-title">{item.title}</h3>
-        <p className="gallery-lightbox__meta">{galleryMeta(item)}</p>
-        {item.description && <p className="gallery-lightbox__desc">{item.description}</p>}
-        {item.points && item.points.length > 0 && (
-          <dl className="gallery-lightbox__points">
-            {item.points.map((point) => (
-              <div key={point.label}>
-                <dt>{point.label}</dt>
-                <dd>{point.text}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
-        <div className="gallery-lightbox__nav">
-          <button type="button" className="gallery-lightbox__btn" onClick={() => onNavigate((index - 1 + items.length) % items.length)} aria-label={`Previous: ${items[(index - 1 + items.length) % items.length].title}`}>← Prev</button>
-          <button type="button" className="gallery-lightbox__btn" onClick={() => onNavigate((index + 1) % items.length)} aria-label={`Next: ${items[(index + 1) % items.length].title}`}>Next →</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function GallerySection() {
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-
-  const openAt = (index: number) => setLightboxIndex(index);
-  const close = () => {
-    if (lightboxIndex === null) return;
-    const id = galleryItems[lightboxIndex].id;
-    setLightboxIndex(null);
-    requestAnimationFrame(() => {
-      document.getElementById(`gallery-thumb-${id}`)?.focus();
-    });
-  };
+  const galleryEntries = galleryItems.map((item) => ({
+    src: item.image.src,
+    alt: item.image.alt,
+    w: item.image.w,
+    h: item.image.h,
+    title: item.title,
+    meta: galleryMeta(item),
+    description: item.description,
+    details: item.points,
+  }));
+  const lightbox = useImageLightbox("gallery-thumb");
 
   return (
     <div>
-      <p className="gallery-note">UI screenshots from the earlier portfolio, preserved with their original titles. Scroll sideways; select any image for a larger view.</p>
+      <p className="gallery-note">Scroll sideways; select any image for a larger view.</p>
       <div className="gallery-strip" role="list" tabIndex={0} aria-label={`Gallery: scrollable list, ${galleryItems.length} UI screenshots`}>
         {galleryItems.map((item, i) => (
           <figure className="gallery-card" role="listitem" key={item.id}>
             <button
               type="button"
-              id={`gallery-thumb-${item.id}`}
+              id={`gallery-thumb-${i}`}
               className="gallery-thumb"
               aria-haspopup="dialog"
               aria-label={`Open larger view: ${item.title}`}
-              onClick={() => openAt(i)}
+              onClick={() => lightbox.open(i)}
             >
               <img
                 src={item.image.src}
@@ -181,12 +119,12 @@ function GallerySection() {
           </figure>
         ))}
       </div>
-      {lightboxIndex !== null && (
-        <GalleryLightbox
-          items={galleryItems}
-          index={lightboxIndex}
-          onClose={close}
-          onNavigate={setLightboxIndex}
+      {lightbox.index !== null && (
+        <ImageLightbox
+          entries={galleryEntries}
+          index={lightbox.index}
+          onClose={lightbox.close}
+          onNavigate={lightbox.navigate}
         />
       )}
     </div>
@@ -253,19 +191,18 @@ function App() {
     <div className="site-shell">
       <a className="skip-link" href="#work">Skip to work</a>
 
-      <header className="site-header">
-        <a className="wordmark" href="#top" aria-label="Prathamesh home">prathamesh</a>
-        <div className="site-header__group">
-          <nav className="site-nav" aria-label="Primary navigation">
-            <a href="#work" className={activeSection === "work" ? "is-active" : ""}>work</a>
-            <a href="#archive" className={activeSection === "archive" ? "is-active" : ""}>archive</a>
-            <a href="#about" className={activeSection === "about" ? "is-active" : ""}>about</a>
-            <a href={GITHUB_URL} target="_blank" rel="noreferrer">github</a>
-            <a href="#contact" className={activeSection === "contact" ? "is-active" : ""}>contact</a>
-          </nav>
-          <ThemeToggle />
-        </div>
-      </header>
+      <SiteHeader
+        wordmarkHref="#top"
+        wordmarkLabel="Prathamesh home"
+        wordmarkText="prathamesh"
+        navLabel="Primary navigation"
+      >
+        <a href="#work" className={activeSection === "work" ? "is-active" : ""}>work</a>
+        <a href="#archive" className={activeSection === "archive" ? "is-active" : ""}>archive</a>
+        <a href="#about" className={activeSection === "about" ? "is-active" : ""}>about</a>
+        <a href={GITHUB_URL} target="_blank" rel="noreferrer">github</a>
+        <a href="#contact" className={activeSection === "contact" ? "is-active" : ""}>contact</a>
+      </SiteHeader>
 
       <main id="main-content">
         <section className="intro section-frame" id="top">
@@ -314,27 +251,37 @@ function App() {
           <div className="collections-strip" role="list" tabIndex={0} aria-label={`Case studies: scrollable list, ${caseProjects.length} projects`}>
             {caseProjects.map((cs) => {
               const preview = cs.galleries[0]?.screens[0];
-              const kindLabel = cs.kind === "exploration" ? "Exploration" : "Case study";
+              const isExploration = cs.kind === "exploration";
+              const context = isExploration ? "Independent" : cs.company;
+              const kindLabel = isExploration ? "exploration" : "case study";
+              const actionLabel = isExploration ? "View exploration" : "Read case study";
+              const href = `#/work/${cs.slug}`;
               return (
                 <article className="coll-card coll-card--project" role="listitem" key={cs.slug} id={cs.slug}>
-                  {preview && <img className="coll-cover coll-project-cover" src={preview.src} alt="" loading="lazy" decoding="async" width={preview.w} height={preview.h} />}
-                  <h3 className="coll-title"><a className="work-title-link" href={`#/work/${cs.slug}`}>{cs.title}</a></h3>
-                  <p className="coll-meta">{kindLabel} · {cs.year}</p>
-                  <p className="coll-desc">{cs.summary}</p>
-                  {(cs.sourceUrl.includes("github.com") || cs.marketplaceUrl) && (
-                    <p className="coll-links">
-                      {cs.sourceUrl.includes("github.com") && (
-                        <a href={cs.sourceUrl} target="_blank" rel="noreferrer">
-                          GitHub ↗<span className="sr-only">: {cs.title} repository (opens in a new tab)</span>
-                        </a>
-                      )}
-                      {cs.marketplaceUrl && (
-                        <a href={cs.marketplaceUrl} target="_blank" rel="noreferrer">
-                          Marketplace ↗<span className="sr-only">: {cs.title} on the Omarchy marketplace (opens in a new tab)</span>
-                        </a>
-                      )}
-                    </p>
+                  {preview && (
+                    <a className="coll-media coll-media--link" href={href} aria-label={`Open ${cs.title} ${kindLabel}`}>
+                      <img className="coll-cover coll-project-cover" src={preview.src} alt="" loading="lazy" decoding="async" width={preview.w} height={preview.h} />
+                      <span className="coll-media__cta" aria-hidden="true">View <span className="coll-link__arrow">→</span></span>
+                    </a>
                   )}
+                  <h3 className="coll-title"><a className="work-title-link" href={href}>{cs.title}</a></h3>
+                  <p className="coll-meta">{context} · {kindLabel} · {cs.year}</p>
+                  <p className="coll-desc">{cs.cardSummary ?? cs.summary}</p>
+                  <p className="coll-links">
+                    <a className="coll-link coll-link--primary" href={href}>
+                      {actionLabel}<span className="coll-link__arrow" aria-hidden="true">→</span>
+                    </a>
+                    {cs.sourceUrl.includes("github.com") && (
+                      <a href={cs.sourceUrl} target="_blank" rel="noreferrer">
+                        GitHub ↗<span className="sr-only">: {cs.title} repository (opens in a new tab)</span>
+                      </a>
+                    )}
+                    {cs.marketplaceUrl && (
+                      <a href={cs.marketplaceUrl} target="_blank" rel="noreferrer">
+                        Marketplace ↗<span className="sr-only">: {cs.title} on the Omarchy marketplace (opens in a new tab)</span>
+                      </a>
+                    )}
+                  </p>
                 </article>
               );
             })}
@@ -342,38 +289,58 @@ function App() {
 
           <h3 className="work-group-label">Maker tools</h3>
           <div className="collections-strip" role="list" tabIndex={0} aria-label={`Maker tools: scrollable list, ${toolProjects.length} tools`}>
-            {toolProjects.map((project) => (
-              <article className="coll-card" role="listitem" key={project.slug} id={project.slug}>
-                {project.cover && !project.cover.src.includes("/placeholder/") && (
-                  <img className="coll-cover coll-project-cover" src={project.cover.src} alt="" loading="lazy" decoding="async" />
-                )}
-                <h3 className="coll-title">{project.title}</h3>
-                <p className="coll-meta">
-                  tool · {project.status === "live"
-                    ? (<><span className="live-dot">●</span> live</>)
-                    : project.status}
-                  {isNonEmpty(project.year) ? ` · ${project.year}` : ""}
-                </p>
-                <p className="coll-desc">{project.tagline} {project.description}</p>
-                {(project.liveUrl || project.repositoryUrl || project.marketplaceUrl) && (
-                  <p className="coll-links">
-                    {project.liveUrl && (
-                      <a className="btn-primary" href={project.liveUrl} target="_blank" rel="noreferrer">Visit ↗</a>
-                    )}
-                    {project.repositoryUrl && (
-                      <a href={project.repositoryUrl} target="_blank" rel="noreferrer">
-                        GitHub ↗<span className="sr-only">: {project.title} repository (opens in a new tab)</span>
-                      </a>
-                    )}
-                    {project.marketplaceUrl && (
-                      <a href={project.marketplaceUrl} target="_blank" rel="noreferrer">
-                        Marketplace ↗<span className="sr-only">: {project.title} on the Omarchy marketplace (opens in a new tab)</span>
-                      </a>
-                    )}
+            {toolProjects.map((project) => {
+              const primaryHref = project.liveUrl ?? project.marketplaceUrl;
+              const primaryLabel = project.liveUrl ? "Visit" : "View marketplace";
+              const primaryArrow = project.liveUrl ? "↗" : "→";
+              const secondary = [
+                project.repositoryUrl && {
+                  href: project.repositoryUrl,
+                  label: "GitHub",
+                  note: `${project.title} repository`,
+                },
+                project.marketplaceUrl &&
+                  project.marketplaceUrl !== primaryHref && {
+                    href: project.marketplaceUrl,
+                    label: "Marketplace",
+                    note: `${project.title} on the Omarchy marketplace`,
+                  },
+              ].filter((link): link is { href: string; label: string; note: string } => !!link);
+              return (
+                <article className="coll-card" role="listitem" key={project.slug} id={project.slug}>
+                  {project.cover && !project.cover.src.includes("/placeholder/") && (
+                    <span className="coll-media">
+                      <img className="coll-cover coll-project-cover" src={project.cover.src} alt="" loading="lazy" decoding="async" />
+                    </span>
+                  )}
+                  <h3 className="coll-title">{project.title}</h3>
+                  <p className="coll-meta">
+                    Independent{project.openSource ? " · open source" : ""}
+                    {" · "}
+                    {project.status === "live"
+                      ? (<><span className="live-dot" aria-hidden="true">●</span> live</>)
+                      : project.status}
+                    {isNonEmpty(project.year) ? ` · ${project.year}` : ""}
                   </p>
-                )}
-              </article>
-            ))}
+                  <p className="coll-desc">{project.cardSummary ?? project.tagline ?? project.description}</p>
+                  {(primaryHref || secondary.length > 0) && (
+                    <p className="coll-links">
+                      {primaryHref && (
+                        <a className="coll-link coll-link--primary" href={primaryHref} target="_blank" rel="noreferrer">
+                          {primaryLabel}<span className="coll-link__arrow" aria-hidden="true">{primaryArrow}</span>
+                          <span className="sr-only"> (opens in a new tab)</span>
+                        </a>
+                      )}
+                      {secondary.map((link) => (
+                        <a key={link.label} href={link.href} target="_blank" rel="noreferrer">
+                          {link.label} ↗<span className="sr-only">: {link.note} (opens in a new tab)</span>
+                        </a>
+                      ))}
+                    </p>
+                  )}
+                </article>
+              );
+            })}
           </div>
         </section>
 
@@ -423,7 +390,12 @@ function App() {
                     <h3>{job.role} <span className="exp-org">— {job.org}</span></h3>
                     <span className="exp-period">{job.period}</span>
                   </div>
-                  <p>{job.description}</p>
+                  <ul className="exp-highlights">
+                    {job.highlights.map((highlight) => (
+                      <li key={highlight}>{renderEmphasis(highlight)}</li>
+                    ))}
+                  </ul>
+                  {job.supporting && <p className="exp-supporting">{renderEmphasis(job.supporting)}</p>}
                 </div>
               </article>
             ))}

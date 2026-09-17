@@ -39,10 +39,15 @@ export type BuildProject = {
   slug: string;
   title: string;
   tagline?: string;
+  /** Short card-level hook. Falls back to tagline/description on the card; the
+   *  full description stays intact for future detail views. */
+  cardSummary?: string;
   description: string;
   status: BuildStatus;
   version?: string;
   year?: string;
+  /** True only when the source content confirms a public/open-source release. */
+  openSource?: boolean;
   cover: MediaAsset;
   gallery: MediaAsset[];
   story: ContentBlock[];

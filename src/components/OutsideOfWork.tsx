@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { RecentlyWatched } from "./RecentlyWatched";
-import { books, photos, youtubeChannel, youtubeVideos } from "../data/outsideOfWork";
+import { Bookshelf } from "./objects/Bookshelf";
+import { photos, youtubeChannel, youtubeVideos } from "../data/outsideOfWork";
 import type { Photo } from "../data/outsideOfWork";
 
 function PhotoLightbox({
@@ -166,24 +167,7 @@ function BooksBlock() {
   return (
     <section className="oow-block" aria-labelledby="oow-books">
       <h3 id="oow-books">Books I've Read</h3>
-      <div className="oow-books" role="list" tabIndex={0} aria-label={`Books: scrollable shelf, ${books.length} covers`}>
-        {books.map((book) => (
-          <figure className="oow-book" role="listitem" key={book.slug}>
-            <img
-              src={book.src}
-              alt={`Cover of ${book.title} by ${book.author}`}
-              width={book.w}
-              height={book.h}
-              loading="lazy"
-              decoding="async"
-            />
-            <figcaption>
-              <span className="oow-book__title">{book.title}</span>
-              <span className="oow-book__author">{book.author}</span>
-            </figcaption>
-          </figure>
-        ))}
-      </div>
+      <Bookshelf />
     </section>
   );
 }

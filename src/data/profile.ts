@@ -2,7 +2,10 @@ export type ExperienceItem = {
   role: string;
   org: string;
   period: string;
-  description: string;
+  /** Primary outcome-oriented highlights. Wrap a metric in `**…**` to emphasize it. */
+  highlights: string[];
+  /** Compact supporting line, rendered quieter than the highlights. */
+  supporting?: string;
 };
 
 export type SkillsGroup = {
@@ -15,27 +18,32 @@ export const experience: ExperienceItem[] = [
     role: "User Interface Designer",
     org: "Jio Platforms Limited",
     period: "Dec 2023 – Present",
-    description:
-      "Enterprise HR-platform modules: corporate travel, feedback management, checklist management, and project management. Complex workflows, operational dashboards, and data-heavy interfaces, built with engineering teams.",
+    highlights: [
+      "Designed and optimized Corporate Travel for an HR platform serving **400,000+ employees**, enabling live flight and hotel bookings.",
+      "Designed and delivered a Checklist Management module from scratch, scaling execution across **180 food courts** and **7,483 facilities** while driving compliance adherence from **50% to over 80%**.",
+      "Led the end-to-end UX process for a Project Management module for construction projects, establishing a fully digitized workflow for templatized execution and real-time operational tracking.",
+      "Designed a Feedback Management System for post-trip employee feedback, providing leadership with real-time operational visibility into travel service quality.",
+    ],
+    supporting:
+      "Additional contributions: Authored PRDs and application data models, collaborated with engineering through Azure DevOps, and mentored designers on Figma, design systems, and UI/UX practices.",
   },
   {
     role: "UI/UX Designer",
     org: "Secoraa",
     period: "Mar 2023 – Nov 2023",
-    description:
-      "Mobile and web products for insurance, service requests, and mutual-fund investment workflows. Information architecture, role-based flows, verification logic, and client-facing interfaces.",
+    highlights: [
+      "Architected a scalable sales-enablement mobile application for insurance agents, integrating real-time policy verification into the purchasing workflow.",
+      "Designed a client-facing service request management portal with tracking, automated notifications, and role-based access control.",
+      "Led a website redesign and contributed to a mutual fund investment and portfolio management app, improving information architecture and simplifying complex financial workflows.",
+    ],
   },
   {
-    role: "Technical Head and Web Developer",
+    role: "Technical Head & Web Developer",
     org: "AmbiTech Healthcare",
     period: "Sep 2021 – Mar 2022",
-    description: "Designed a glucometer companion app and developed an inventory management web portal.",
-  },
-  {
-    role: "Independent Builder",
-    org: "Self-directed",
-    period: "2024 – Present",
-    description: "Personal software projects, desktop tools, web products, and developer utilities alongside design work.",
+    highlights: [
+      "Designed a glucometer companion app and developed an inventory management web portal for healthcare operations.",
+    ],
   },
 ];
 

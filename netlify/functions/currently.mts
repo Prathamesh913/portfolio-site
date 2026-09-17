@@ -11,6 +11,7 @@ type Watching =
       year?: number;
       watchedAt?: string;
       url?: string;
+      poster?: string;
       isNow?: boolean;
     }
   | null;
@@ -33,6 +34,16 @@ type Reading =
 
 const TIMEOUT = 8_000;
 const withTimeout = () => AbortSignal.timeout(TIMEOUT);
+
+// Poster paths from Trakt have no scheme (e.g. walter.trakt.tv/images/...);
+// route them through the existing cached artwork proxy so the browser never
+// hotlinks Trakt's CDN, mirroring netlify/functions/trakt-recent.mts.
+const IMAGE_PATH = "/.netlify/functions/trakt-image";
+function proxiedPoster(path?: string): string | undefined {
+  if (!path) return undefined;
+  const absolute = path.startsWith("http") ? path : `https://${path}`;
+  return `${IMAGE_PATH}?u=${encodeURIComponent(absolute)}`;
+}
 
 // Operational telemetry for the Watching card (no secrets — stage names and
 // HTTP statuses only). Lets the endpoint itself say why Trakt failed.
@@ -117,7 +128,7 @@ async function getWatching(): Promise<{ data: Watching; live: boolean; debug: Tr
   };
   try {
     const watchingRes = await fetch(
-      `https://api.trakt.tv/users/${userPath}/watching`,
+      `https://api.trakt.tv/users/${userPath}/watching?extended=full,images`,
       { headers, signal: withTimeout() }
     );
     debug.stage = accessToken ? "authed-watching" : "anon-watching";
@@ -139,6 +150,7 @@ async function getWatching(): Promise<{ data: Watching; live: boolean; debug: Tr
               detail: [num, ep.title].filter(Boolean).join(" · ") || undefined,
               year: w.show.year,
               url: w.show.ids?.slug ? `https://trakt.tv/shows/${w.show.ids.slug}` : undefined,
+              poster: proxiedPoster(w.show.images?.poster?.[0]),
               isNow: true,
             },
             live: true,
@@ -151,6 +163,7 @@ async function getWatching(): Promise<{ data: Watching; live: boolean; debug: Tr
             title: w.movie.title,
             year: w.movie.year,
             url: w.movie.ids?.slug ? `https://trakt.tv/movies/${w.movie.ids.slug}` : undefined,
+            poster: proxiedPoster(w.movie.images?.poster?.[0]),
             isNow: true,
           },
           live: true,
@@ -159,7 +172,7 @@ async function getWatching(): Promise<{ data: Watching; live: boolean; debug: Tr
       }
     }
     const histRes = await fetch(
-      `https://api.trakt.tv/users/${userPath}/history?limit=1&extended=full`,
+      `https://api.trakt.tv/users/${userPath}/history?limit=1&extended=full,images`,
       { headers, signal: withTimeout() }
     );
     debug.stage = accessToken ? "authed-history" : "anon-history";
@@ -175,6 +188,7 @@ async function getWatching(): Promise<{ data: Watching; live: boolean; debug: Tr
           year: item.movie.year,
           watchedAt: item.watched_at,
           url: item.movie.ids?.slug ? `https://trakt.tv/movies/${item.movie.ids.slug}` : undefined,
+          poster: proxiedPoster(item.movie.images?.poster?.[0]),
         },
         live: true,
         debug,
@@ -194,6 +208,7 @@ async function getWatching(): Promise<{ data: Watching; live: boolean; debug: Tr
           year: item.show.year,
           watchedAt: item.watched_at,
           url: item.show.ids?.slug ? `https://trakt.tv/shows/${item.show.ids.slug}` : undefined,
+          poster: proxiedPoster(item.show.images?.poster?.[0]),
         },
         live: true,
         debug,

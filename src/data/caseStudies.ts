@@ -38,6 +38,9 @@ export type CaseStudy = {
   year: string;
   kind: CaseStudyKind;
   summary: string;
+  /** Short card-level hook. Falls back to summary on the card; the full
+   *  summary stays intact for the case-study page header. */
+  cardSummary?: string;
   role: string;
   scope: string[];
   platform?: string;
@@ -82,6 +85,7 @@ export const serviceChecklists: CaseStudy = {
   kind: "case-study",
   summary:
     "A Web-on-Mobile checklist ecosystem for health, safety, and operational compliance audits across enterprise facility hierarchies.",
+  cardSummary: "A Web-on-Mobile checklist ecosystem for enterprise facility operations.",
   role: "UI/UX Designer",
   scope: ["Interface design", "Workflow design", "Information architecture", "Prototyping"],
   platform: "Enterprise Web-on-Mobile product",
@@ -261,11 +265,12 @@ export const serviceChecklists: CaseStudy = {
 export const recognitionPlatform: CaseStudy = {
   slug: "recognition-platform",
   title: "Employee Recognition Platform",
-  company: "Jio Platforms",
+  company: "Secoraa",
   year: "2025",
   kind: "case-study",
   summary:
     "An enterprise-grade platform for corporate recognition and a vendor-driven marketplace with pricing and budget management workflows.",
+  cardSummary: "An enterprise recognition and rewards marketplace with vendor and budget workflows.",
   role: "UI/UX Designer",
   scope: ["Interface design", "Workflow design", "Enterprise product design"],
   platform: "Enterprise web platform",
@@ -344,6 +349,7 @@ export const policyAgentApp: CaseStudy = {
   kind: "case-study",
   summary:
     "A sales-enablement ecosystem for insurance agents featuring a real-time Automated Vehicle Verification engine via seamless API integration.",
+  cardSummary: "A sales-enablement app for insurance agents, with real-time vehicle verification.",
   role: "UI/UX Designer",
   scope: ["Mobile product design", "Workflow design", "Interaction design"],
   platform: "Mobile insurance sales-enablement product",
@@ -411,6 +417,7 @@ export const mutualFundsApp: CaseStudy = {
   kind: "case-study",
   summary:
     "A comprehensive FinTech platform designed to simplify complex investment data through intuitive Portfolio Analytics and risk-based fund discovery.",
+  cardSummary: "A fintech platform that simplifies investment data through portfolio analytics.",
   role: "UI/UX Designer",
   scope: ["FinTech interface design", "Information architecture", "Analytics UX"],
   platform: "FinTech web/mobile product",
@@ -478,6 +485,7 @@ export const ashwiniFoods: CaseStudy = {
   year: "2022",
   kind: "exploration",
   summary: "An experiment for a readymade food mixes homemade brand.",
+  cardSummary: "A brand and packaging exploration for a readymade food-mix label.",
   role: "Designer",
   scope: ["Brand and packaging exploration"],
   platform: "Visual design exploration",
@@ -511,6 +519,7 @@ export const icelandTourism: CaseStudy = {
   year: "2022",
   kind: "exploration",
   summary: "A travel catalogue design exploration for iceland tourism.",
+  cardSummary: "A travel catalogue design exploration for Iceland tourism.",
   role: "Designer",
   scope: ["Editorial layout", "Typography", "Visual storytelling"],
   platform: "Catalogue design exploration",
