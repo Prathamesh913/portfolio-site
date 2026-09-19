@@ -29,7 +29,7 @@ type Listening =
   | null;
 
 type Reading =
-  | { title: string; author?: string; progressPercent?: number; url?: string }
+  | { title: string; author?: string; progressPercent?: number; url?: string; cover?: string }
   | null;
 
 const TIMEOUT = 8_000;
@@ -303,8 +303,7 @@ async function getReading(): Promise<{ data: Reading; live: boolean }> {
         query: `query CurrentlyReading {
           me {
             user_books(where: {status_id: {_eq: 2}}, order_by: {updated_at: desc}, limit: 1) {
-              progress_pages
-              book { title slug pages contributions { author { name } } }
+              book { title slug pages contributions { author { name } } image { url } }
               user_book_reads(order_by: {id: desc}, limit: 1) { progress progress_pages }
             }
           }
@@ -318,17 +317,25 @@ async function getReading(): Promise<{ data: Reading; live: boolean }> {
     if (!ub?.book) return { data: null, live: false };
     const read = ub.user_book_reads?.[0];
     let progress: number | undefined;
-    if (typeof read?.progress === "number") progress = Math.round(read.progress * 100);
-    else if (typeof read?.progress_pages === "number" && ub.book.pages)
+    // Hardcover's progress is already a 0–100 percentage; prefer the
+    // page-based figure, which is unambiguous when both are present.
+    if (ub.book.pages && typeof read?.progress_pages === "number")
       progress = Math.round((read.progress_pages / ub.book.pages) * 100);
-    else if (typeof ub.progress_pages === "number" && ub.book.pages)
-      progress = Math.round((ub.progress_pages / ub.book.pages) * 100);
+    else if (typeof read?.progress === "number") progress = Math.round(read.progress);
+    if (typeof progress === "number") progress = Math.min(100, Math.max(0, progress));
     return {
       data: {
         title: ub.book.title,
         author: ub.book.contributions?.[0]?.author?.name,
         progressPercent: progress,
         url: ub.book.slug ? `https://hardcover.app/books/${ub.book.slug}` : undefined,
+        // Source-confirmed edition artwork from the reading source itself.
+        // Only accept Hardcover's own CDN asset — never a fabricated URL.
+        cover:
+          typeof ub.book.image?.url === "string" &&
+          ub.book.image.url.startsWith("https://assets.hardcover.app/")
+            ? ub.book.image.url
+            : undefined,
       },
       live: true,
     };

@@ -27,6 +27,10 @@ const SCOPES = [
   "user-read-currently-playing",
   "user-read-recently-played",
   "user-read-playback-state",
+  // Playback control for the Listening card's tonearm (Web Playback SDK):
+  // re-run this script after pulling these so the refresh token gains them.
+  "streaming",
+  "user-modify-playback-state",
 ];
 const ENV_PATH = path.resolve(process.cwd(), ".env.local");
 

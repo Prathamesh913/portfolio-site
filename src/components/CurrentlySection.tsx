@@ -8,29 +8,33 @@ import { RecordPlayer } from "./objects/RecordPlayer";
 
 const REFRESH_MS = 60_000;
 
-function SourceBadge({ source, liveLabel }: { source: "live" | "snapshot"; liveLabel: string }) {
+function SourceBadge({ source, liveLabel, snapshotLabel }: { source: "live" | "snapshot"; liveLabel: string; snapshotLabel?: string }) {
   const live = source === "live";
   return (
-    <span className={`currently-badge${live ? " is-live" : ""}`} title={live ? `Live from ${liveLabel}` : "Curated snapshot — connect the API for live data"}>
+    <span
+      className={`currently-badge${live ? " is-live" : ""}`}
+      title={live ? `Live from ${liveLabel}` : (snapshotLabel ?? "Curated snapshot — connect the API for live data")}
+    >
       <span aria-hidden="true">{live ? "●" : "○"}</span> {live ? "live" : "snapshot"}
     </span>
   );
 }
 
-function CardShell({ label, source, liveLabel, href, linkLabel, state, children }: {
+function CardShell({ label, source, liveLabel, href, linkLabel, state, snapshotLabel, children }: {
   label: string;
   source: "live" | "snapshot";
   liveLabel: string;
   href?: string;
   linkLabel?: string;
   state?: React.ReactNode;
+  snapshotLabel?: string;
   children: React.ReactNode;
 }) {
   return (
     <article className="currently-card">
       <div className="currently-card__head">
         <h3>{label}</h3>
-        <SourceBadge source={source} liveLabel={liveLabel} />
+        <SourceBadge source={source} liveLabel={liveLabel} snapshotLabel={snapshotLabel} />
       </div>
       {children}
       <div className="currently-foot">
@@ -134,6 +138,7 @@ export function CurrentlySection() {
                   art={data.listening.albumArt}
                   album={data.listening.album}
                   playing={data.listening.isPlaying === true}
+                  trackUrl={data.listening.url}
                 />
               </div>
               <p className="currently-title">{data.listening.track}</p>
@@ -149,9 +154,12 @@ export function CurrentlySection() {
           )}
         </CardShell>
 
+        {/* Reading is labelled a snapshot on purpose: the Hardcover shelf is a
+            personal reading state, not a live external stream like Trakt/Spotify. */}
         <CardShell
           label="Reading"
-          source={data.sources.hardcover}
+          source="snapshot"
+          snapshotLabel="Personal reading snapshot"
           liveLabel="Hardcover"
           href={reading?.url}
           linkLabel="Hardcover"
@@ -159,8 +167,8 @@ export function CurrentlySection() {
         >
           {reading ? (
             <>
-              <div className="currently-object">
-                <ReadingBook title={reading.title} author={reading.author} progress={reading.progressPercent} />
+              <div className="currently-object currently-object--reading">
+                <ReadingBook title={reading.title} author={reading.author} progress={reading.progressPercent} cover={reading.cover} />
               </div>
               <p className="currently-title">{reading.title}</p>
               <p className="currently-meta">{reading.author}</p>

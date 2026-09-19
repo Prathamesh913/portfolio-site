@@ -18,6 +18,7 @@ import react from "@vitejs/plugin-react";
 const API_ROUTES: Record<string, string> = {
   "/api/currently": "api/currently.ts",
   "/api/github": "api/github.ts",
+  "/api/spotify/token": "api/spotify/token.ts",
   "/api/trakt/recent": "api/trakt/recent.ts",
   "/api/trakt/image": "api/trakt/image.ts",
 };

@@ -712,6 +712,12 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   min-height: var(--object-h, 8.75rem);
   margin-top: 0.5rem;
 }
+/* Reading's cover is deliberately shorter than the 232×179 deck/CRT footprint,
+   so its object area is pinned to the same height — all three captions start
+   on the same line. */
+.currently-object--reading {
+  min-height: calc(var(--object-w, 232px) * 179 / 232);
+}
 
 /* Listening — turntable: body → platter → record → label, with a curved
    tonearm on a fixed pivot. The Spotify artwork is the record label; only the
@@ -755,14 +761,15 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .deck.is-playing .deck__spin { animation-play-state: running; }
 @keyframes deck-spin { to { transform: rotate(360deg); } }
 
-/* The arm sits on the record only while Spotify reports playback; otherwise it
-   parks on its rest. The arm itself never moves on hover. */
+/* The arm rests on the record by default — the composed first-paint look. It
+   only parks on its rest after the visitor explicitly pauses, and drops back
+   when they play again. The arm itself never moves on hover. */
 .deck__arm {
   transform-box: view-box; transform-origin: 124px 30px;
-  transform: rotate(-18deg);
+  transform: rotate(0deg);
   transition: transform 620ms cubic-bezier(0.32, 0.72, 0.3, 1);
 }
-.deck.is-playing .deck__arm { transform: rotate(0deg); }
+.deck.is-parked .deck__arm { transform: rotate(-18deg); }
 
 .deck__notes {
   position: absolute; z-index: 4;
@@ -959,36 +966,59 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   100% { transform: translate3d(0, 0, 0); }
 }
 
-/* Reading — physical hardback. Real cover when the shelf data has it, typed
-   cover otherwise; the ribbon tip marks the reader's progress. */
-.book { --paper: #cfcabe; --paper-edge: #a9a397; --spine: #b4ada0; --spine-edge: #9d9689; --band: #8d877c; display: block; width: 6.85rem; }
-.book__svg { display: block; width: 100%; height: auto; }
-.book__shadow { fill: rgba(0, 0, 0, 0.35); }
-.book__pages { fill: var(--paper); stroke: var(--paper-edge); stroke-width: 0.8; }
-.book__fore-edge line { stroke: rgba(0, 0, 0, 0.13); stroke-width: 0.6; }
-.book__spine { fill: var(--spine); stroke: var(--spine-edge); stroke-width: 0.7; }
-.book__head-band { fill: var(--band); }
-.book__cover { fill: var(--element); stroke: var(--border); stroke-width: 1; }
-.book__cover-type text {
-  font-family: var(--font); font-size: 7.2px; font-weight: 500;
-  letter-spacing: 0.08em; fill: var(--ink);
+/* Reading — the REAL cover as hero: one closed paperback resting on the card.
+    Front-facing with a ~2° tilt, a thin page edge behind the fore-edge/foot,
+    and a soft contact shadow. Progress lives in the footer text — nothing
+    overlays the artwork. Calm: motion only on hover/focus (lift 4px). */
+.book {
+  --paper: #d9d4c7; --paper-edge: #b6b0a3;
+  position: relative; display: block; width: 100%; max-width: 100%;
 }
-.book__cover-rule { stroke: var(--border); stroke-width: 0.9; }
-.book__cover-author {
-  font-family: var(--font); font-size: 5.6px; letter-spacing: 0.1em; fill: var(--muted);
+.book__stage {
+  position: relative; display: block;
+  /* A touch shorter than the Listening turntable's 179px footprint, so the
+     narrower book doesn't outweigh the other two objects. */
+  height: 150px;
+  width: fit-content;
+  margin: 0.35rem auto 10px;
+  transition: transform 220ms ease;
 }
-.book__hinge { fill: none; stroke: rgba(0, 0, 0, 0.2); stroke-width: 0.8; }
-.book__ribbon {
-  fill: var(--primary);
-  filter: drop-shadow(0 1px 1.2px rgba(0, 0, 0, 0.35));
-  transform-box: view-box; transform-origin: 15.5px 5px;
+.book__cover {
+  position: relative; z-index: 1;
+  display: block; height: 100%; width: auto; max-width: 100%;
+  margin: 0 auto;
+  border: 1px solid var(--border); border-radius: 2px 4px 4px 2px;
+  background: var(--element);
+  transform: perspective(600px) rotateY(-3deg) rotateZ(-1.6deg);
 }
+/* Thin page block peeking behind the fore-edge (right) and foot (bottom). */
+.book__pages {
+  position: absolute; z-index: 0; inset: 0;
+  transform: perspective(600px) rotateY(-3deg) rotateZ(-1.6deg) translate(3px, 3px);
+  border: 1px solid var(--paper-edge); border-radius: 2px 4px 4px 2px;
+  background: var(--paper);
+}
+/* Soft contact shadow — the book rests on the surface, never floats. */
+.book__shadow {
+  position: absolute; z-index: 0; left: 6%; right: 2%; bottom: -9px; height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0) 70%);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+.book__fallback {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.3rem; min-height: 9rem; padding: 1rem;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--element); text-align: center;
+}
+.book__fallback-title { font-family: var(--font); font-size: 0.85rem; font-weight: 700; color: var(--ink); }
+.book__fallback-author { font-size: 0.75rem; color: var(--muted); }
 :root[data-theme="light"] .book {
-  --paper: #efe9dc; --paper-edge: #d3cbba; --spine: #e7e1d4; --spine-edge: #cec6b4; --band: #c5bda9;
+  --paper: #e4dfd2; --paper-edge: #c3bcac;
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) .book {
-    --paper: #efe9dc; --paper-edge: #d3cbba; --spine: #e7e1d4; --spine-edge: #cec6b4; --band: #c5bda9;
+    --paper: #e4dfd2; --paper-edge: #c3bcac;
   }
 }
 
@@ -997,22 +1027,22 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   .deck:hover .deck__body { stroke: rgba(255, 255, 255, 0.16); }
   .crt__tube { transition: filter 240ms ease; }
   .crt:hover .crt__tube { filter: brightness(1.06); }
-  .book__ribbon { transition: transform 280ms cubic-bezier(0.32, 0.72, 0.35, 1); }
-  .book:hover .book__ribbon { transform: rotate(-2.6deg); }
+  .book:hover .book__stage, .book:focus-within .book__stage { transform: translateY(-4px); }
+  .book:hover .book__shadow, .book:focus-within .book__shadow { transform: scaleX(1.05); }
 }
 
 /* Reduced motion: content and metaphor hold, nothing moves. The snow becomes a
    fixed monochrome pattern and the picture is simply there. */
 @media (prefers-reduced-motion: reduce) {
   .deck.is-playing .deck__spin { animation: none; }
-  .deck, .deck__body, .deck__arm, .book__ribbon { transition: none; }
+  .deck, .deck__body, .deck__arm, .book__stage, .book__shadow { transition: none; }
   .deck:hover { transform: none; }
+  .book:hover .book__stage, .book:focus-within .book__stage { transform: none; }
   .deck__note { animation: none; }
   .deck__note-glyph { transition: none; }
   .deck__notes.is-playing .deck__note-glyph { opacity: 0.55; }
   .deck__notes.is-arming .deck__note-glyph,
   .deck__notes.is-fading .deck__note-glyph { opacity: 0; }
-  .book:hover .book__ribbon { transform: none; }
   .crt.is-on .crt__tube,
   .crt.is-on .crt__static,
   .crt.is-on .crt__poster { animation: none; }

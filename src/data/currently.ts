@@ -39,6 +39,8 @@ export type CurrentlyReading = {
   progressPercent?: number;
   url?: string;
   startedAt?: string;
+  /** Source-confirmed cover artwork (Hardcover edition image when live). */
+  cover?: string;
 };
 
 export type CurrentlySource = "live" | "snapshot";
