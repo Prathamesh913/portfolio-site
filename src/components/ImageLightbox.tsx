@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // Shared lightbox used by both the Archive gallery and case-study images.
 // Each caller supplies its own entry set and trigger buttons, so navigation
@@ -31,9 +31,41 @@ export function ImageLightbox({
   const prevIndex = (index - 1 + entries.length) % entries.length;
   const nextIndex = (index + 1) % entries.length;
 
+  // Entry/exit is a CSS fade + slight rise. Closing is intercepted so the exit
+  // can play before the caller unmounts the dialog.
+  const [shown, setShown] = useState(false);
+  const closingRef = useRef(false);
+  const closeTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setShown(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
+    },
+    []
+  );
+
+  const requestClose = useCallback(() => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    const reduced =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      onClose();
+      return;
+    }
+    setShown(false);
+    closeTimer.current = window.setTimeout(onClose, 220);
+  }, [onClose]);
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { e.preventDefault(); onClose(); }
+      if (e.key === "Escape") { e.preventDefault(); requestClose(); }
       else if (hasMany && e.key === "ArrowRight") { e.preventDefault(); onNavigate(nextIndex); }
       else if (hasMany && e.key === "ArrowLeft") { e.preventDefault(); onNavigate(prevIndex); }
       else if (e.key === "Tab" && dialogRef.current) {
@@ -55,22 +87,22 @@ export function ImageLightbox({
       document.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = prevOverflow;
     };
-  }, [index, entries.length, hasMany, prevIndex, nextIndex, onClose, onNavigate]);
+  }, [index, entries.length, hasMany, prevIndex, nextIndex, requestClose, onNavigate]);
 
   if (!entry) return null;
 
   return (
     <div
-      className="gallery-lightbox"
+      className={`gallery-lightbox${shown ? " is-shown" : ""}`}
       role="dialog"
       aria-modal="true"
       aria-label={`Image viewer: ${entry.title ?? entry.alt}`}
-      onClick={onClose}
+      onClick={requestClose}
     >
       <div className="gallery-lightbox__panel" ref={dialogRef} onClick={(e) => e.stopPropagation()}>
         <div className="gallery-lightbox__bar">
           {hasMany && <p className="gallery-lightbox__count">{index + 1} / {entries.length}</p>}
-          <button type="button" className="gallery-lightbox__btn" onClick={onClose} aria-label="Close larger view">Close ✕</button>
+          <button type="button" className="gallery-lightbox__btn" onClick={requestClose} aria-label="Close larger view">Close ✕</button>
         </div>
         <img
           className="gallery-lightbox__img"
