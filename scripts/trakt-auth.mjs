@@ -14,8 +14,8 @@
 //
 // It opens Trakt's consent screen, catches the callback, and writes
 // TRAKT_ACCESS_TOKEN + TRAKT_ACCESS_EXPIRES_AT + TRAKT_REFRESH_TOKEN into
-// .env.local. Access tokens last ~90 days; re-run when the Watching card
-// stops going live (the script safely rotates and re-persists everything).
+// .env.local. Access tokens last ~7 days (see https://docs.trakt.tv/reference/authentication);
+// re-run when the Watching card stops going live (the script safely rotates and re-persists everything).
 
 import http from "node:http";
 import fs from "node:fs";
@@ -151,7 +151,8 @@ const server = http.createServer(async (req, res) => {
 
   try {
     const tokens = await exchangeCode(code);
-    const expiresAt = Date.now() + (tokens.expires_in ?? 7776000) * 1000;
+    // Trakt's expires_in is authoritative (currently 7 days = 604800s).
+    const expiresAt = Date.now() + (tokens.expires_in ?? 604800) * 1000;
     upsertEnvFile(ENV_PATH, [
       ["TRAKT_ACCESS_TOKEN", tokens.access_token],
       ["TRAKT_ACCESS_EXPIRES_AT", String(expiresAt)],

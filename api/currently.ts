@@ -189,7 +189,12 @@ async function getWatching(): Promise<{ data: Watching; live: boolean; debug: Tr
     );
     debug.stage = accessToken ? "authed-history" : "anon-history";
     debug.status = histRes.status;
-    if (!histRes.ok) return { data: null, live: false, debug };
+    if (!histRes.ok) {
+      // Rejected Bearer token (expired/revoked/rotated) — flag re-auth even
+      // when the refresh step itself didn't report invalid_grant.
+      if (!!accessToken && (histRes.status === 401 || histRes.status === 403)) debug.reauth = true;
+      return { data: null, live: false, debug };
+    }
     const [item] = (await histRes.json()) as Array<Record<string, any>>;
     if (!item) return { data: null, live: false, debug };
     if (item.type === "movie" && item.movie) {

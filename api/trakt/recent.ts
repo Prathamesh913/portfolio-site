@@ -1,7 +1,10 @@
 // GET /api/trakt/recent — normalized, cached recent Trakt watch history.
 //
 // Auth: OAuth authorization-code tokens minted once via `npm run trakt:auth`
-// and stored as env vars. The client secret and tokens never leave the server.
+// and stored as env vars (reads /users/me, sees history regardless of
+// privacy). When no usable token exists, falls back to the public username
+// path (/users/:username) with just the client ID — same pattern as
+// api/currently.ts — so public profiles stay live while tokens are expired.
 // Trakt requires BOTH `trakt-api-key` and `Authorization: Bearer` on
 // authenticated calls; either alone is rejected.
 //
@@ -186,10 +189,16 @@ async function fetchHistory(
 ): Promise<{ items: RecentItem[]; ok: boolean; reauth: boolean }> {
   const { token, reauth } = await getAccessToken();
   const clientId = process.env.TRAKT_CLIENT_ID;
-  if (!clientId) return { items: [], ok: false, reauth };
+  // Public profiles don't need OAuth: fall back to the username path (same
+  // pattern as api/currently.ts) so a dead/rotated token doesn't hide the
+  // section. Authenticated /users/me is preferred when a token exists since
+  // it sees history regardless of privacy toggles.
+  const username = process.env.TRAKT_USERNAME;
+  const userPath = token ? "me" : username ? encodeURIComponent(username) : "me";
+  if (!clientId && !token) return { items: [], ok: false, reauth };
   try {
     const res = await fetch(
-      `https://api.trakt.tv/users/me/history?limit=${limit}&extended=full`,
+      `https://api.trakt.tv/users/${userPath}/history?limit=${limit}&extended=full,images`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -201,7 +210,12 @@ async function fetchHistory(
         signal: AbortSignal.timeout(TIMEOUT),
       }
     );
-    if (!res.ok) return { items: [], ok: false, reauth };
+    if (!res.ok) {
+      // A 401 here with a token means the stored/rotated token was rejected —
+      // same re-auth condition as a failed refresh, so surface it identically.
+      const expired = (res.status === 401 || res.status === 403) && !!token;
+      return { items: [], ok: false, reauth: reauth || expired };
+    }
     const entries = (await res.json()) as TraktHistoryEntry[];
     return { items: normalize(entries), ok: true, reauth };
   } catch {

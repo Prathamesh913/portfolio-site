@@ -1,5 +1,7 @@
 // Netlify mirror of api/trakt/recent.ts — same provider, same response shape.
 // Deploy target picks one: Vercel runs api/, Netlify runs this file.
+// Authenticated /users/me preferred; falls back to public /users/:username
+// when no usable token exists, so public profiles stay live.
 // Env: TRAKT_CLIENT_ID, TRAKT_CLIENT_SECRET, TRAKT_USERNAME,
 //      TRAKT_ACCESS_TOKEN, TRAKT_ACCESS_EXPIRES_AT, TRAKT_REFRESH_TOKEN,
 //      TRAKT_HISTORY_LIMIT (optional, default 8).
@@ -176,10 +178,12 @@ async function fetchHistory(
 ): Promise<{ items: RecentItem[]; ok: boolean; reauth: boolean }> {
   const { token, reauth } = await getAccessToken();
   const clientId = process.env.TRAKT_CLIENT_ID;
-  if (!clientId) return { items: [], ok: false, reauth };
+  const username = process.env.TRAKT_USERNAME;
+  const userPath = token ? "me" : username ? encodeURIComponent(username) : "me";
+  if (!clientId && !token) return { items: [], ok: false, reauth };
   try {
     const res = await fetch(
-      `https://api.trakt.tv/users/me/history?limit=${limit}&extended=full`,
+      `https://api.trakt.tv/users/${userPath}/history?limit=${limit}&extended=full,images`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -191,7 +195,10 @@ async function fetchHistory(
         signal: AbortSignal.timeout(TIMEOUT),
       }
     );
-    if (!res.ok) return { items: [], ok: false, reauth };
+    if (!res.ok) {
+      const expired = (res.status === 401 || res.status === 403) && !!token;
+      return { items: [], ok: false, reauth: reauth || expired };
+    }
     const entries = (await res.json()) as TraktHistoryEntry[];
     return { items: normalize(entries), ok: true, reauth };
   } catch {
