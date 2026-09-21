@@ -31,6 +31,12 @@ const SCOPES = [
   // re-run this script after pulling these so the refresh token gains them.
   "streaming",
   "user-modify-playback-state",
+  // Required by the Web Playback SDK itself: without these its internal
+  // check_scope?scope=web-playback call 403s and the player raises
+  // account_error/authentication_error (silent illustration-only mode).
+  // Scopes bind at authorization time, so existing grants must re-auth.
+  "user-read-email",
+  "user-read-private",
 ];
 const ENV_PATH = path.resolve(process.cwd(), ".env.local");
 

@@ -4,22 +4,16 @@
 // → label, with a curved tonearm anchored to a fixed pivot. The real Spotify
 // artwork is the record's center label and rotates with the record.
 //
-// The tonearm click really plays the song: it pairs Spotify's Web Playback
-// SDK (a hidden browser player on the owner's account, Premium required) and
-// starts the current track. Anything that fails — no Premium, blocked SDK,
-// expired grant — falls back to the illustration-only toggle, so the card
-// never breaks.
+// The tonearm click really plays the song: the track runs inside a hidden
+// Spotify embed (IFrame API, visitor's own context — no owner grant, no
+// Premium-on-owner). Anything that fails falls back to the illustration-only
+// toggle, so the card never breaks.
 
 import { useEffect, useId, useRef, useState } from "react";
 import {
-  fetchPlayerToken,
-  loadSpotifySDK,
-  pauseTrack,
-  resumeTrack,
+  loadSpotifyEmbed,
   spotifyUriFromUrl,
-  startTrack,
-  transferToDevice,
-  type SpotifyPlayer,
+  type SpotifyEmbedController,
 } from "../../lib/spotifyPlayer";
 
 const CENTER = { x: 60, y: 63 };
@@ -69,25 +63,36 @@ export function RecordPlayer({
   const notesPhaseRef = useRef<NotesPhase>("playing");
   const armTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mounted = useRef(false);
-  // Real-playback wiring: the paired SDK player, its device id, whether the
-  // pairing ever succeeded, and whether pairing is definitively impossible
-  // (no Premium / bad grant) so clicks skip straight to the visual fallback.
-  const playerRef = useRef<SpotifyPlayer | null>(null);
-  const deviceRef = useRef<string | null>(null);
-  const pairingRef = useRef<Promise<boolean> | null>(null);
-  const realRef = useRef(false);
+  // Real-playback wiring: one hidden embed controller for the card's life,
+  // what it currently holds, and whether it is audibly playing. Events are
+  // the source of truth; the refs below only stage instant visuals.
+  const embedHostRef = useRef<HTMLSpanElement | null>(null);
+  // Wrapper survives createController (which replaces the host span with its
+  // iframe); its connectedness is the unmount guard. Creation is keyed to the
+  // host identity, so StrictMode double-effects share one attempt on one node
+  // while real remounts (new node) start fresh.
+  const embedWrapRef = useRef<HTMLSpanElement | null>(null);
+  const controllerRef = useRef<SpotifyEmbedController | null>(null);
+  // Failed creations retry on clicks after the window; successes stick via
+  // controllerRef above, so one blocked-CDN moment can't wedge the session.
+  const controllerPromiseRef = useRef<{
+    host: HTMLElement;
+    at: number;
+    p: Promise<SpotifyEmbedController | null>;
+  } | null>(null);
+  const lastUriRef = useRef<string | null>(null);
   const realPlayingRef = useRef(false);
-  const deadRef = useRef(false);
   const [realActive, setRealActive] = useState(false);
-  // Play intent + delayed park: starting a track emits a brief paused blip
-  // while Spotify buffers — parking on it makes the arm jump away and back.
-  // So pause visuals settle 500ms after the event, and any paused event
-  // inside 1.5s of a play intent is ignored outright.
-  const playIntentRef = useRef(0);
-  const parkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const notePlayIntent = () => {
-    playIntentRef.current = Date.now();
+  /** Awaited embed call — false instead of an unhandled rejection. */
+  const callEmbedAsync = async (fn: () => unknown): Promise<boolean> => {
+    try {
+      await fn();
+      return true;
+    } catch (e) {
+      console.warn("[turntable] embed call rejected", e);
+      return false;
+    }
   };
 
   // Every visit opens mid-performance: spinning record, arm on it, notes up.
@@ -103,14 +108,16 @@ export function RecordPlayer({
       userToggled.current = false;
       setVisualPlaying(playing);
       setParked(false);
-      deadRef.current = false;
-      // Follow the new track on the real device when it was playing.
+      // Follow the new track in the embed when it was playing.
       const follow = async () => {
-        if (playerRef.current && deviceRef.current && realPlayingRef.current) {
-          const token = await fetchPlayerToken();
+        if (controllerRef.current && realPlayingRef.current) {
           const uri = spotifyUriFromUrl(trackUrl);
-          if (token && uri && (await startTrack(token, deviceRef.current, uri))) {
-            notePlayIntent();
+          const controller = controllerRef.current;
+          if (uri && (await callEmbedAsync(() => {
+            controller.loadUri(uri);
+            controller.play();
+          }))) {
+            lastUriRef.current = uri;
           }
         }
       };
@@ -124,10 +131,10 @@ export function RecordPlayer({
     return () => {
       if (armTimer.current) clearTimeout(armTimer.current);
       if (fadeTimer.current) clearTimeout(fadeTimer.current);
-      if (parkTimer.current) clearTimeout(parkTimer.current);
-      playerRef.current?.disconnect();
-      playerRef.current = null;
-      deviceRef.current = null;
+      // Keep an in-flight creation: StrictMode remounts share it (same host
+      // node, so the identity check below dedupes). Drop only the live
+      // controller, which belonged to the detached tree.
+      controllerRef.current = null;
     };
   }, []);
 
@@ -160,152 +167,110 @@ export function RecordPlayer({
     }, NOTE_FADE_MS);
   }, [visualPlaying]);
 
-  /** Pair the hidden browser player and claim it as the playback device. */
-  const pairPlayer = async (): Promise<boolean> => {
-    if (deadRef.current) return false;
-    if (playerRef.current && deviceRef.current) return true;
-    if (pairingRef.current) return pairingRef.current;
-    const attempt = (async (): Promise<boolean> => {
-      const sdk = await loadSpotifySDK();
-      if (!sdk) return false;
-      const w = window as unknown as {
-        Spotify: { Player: new (options: Record<string, unknown>) => SpotifyPlayer };
-      };
-      const token = await fetchPlayerToken();
-      if (!token) return false;
-      const player = new w.Spotify.Player({
-        name: "Portfolio Turntable",
-        volume: 0.5,
-        getOAuthToken: (cb: (value: string) => void) => {
-          fetchPlayerToken().then((fresh) => cb(fresh ?? ""));
-        },
-      });
-      let resolveDevice: (id: string | null) => void = () => {};
-      const deviceGate = new Promise<string | null>((resolve) => {
-        resolveDevice = resolve;
-      });
-      const timer = setTimeout(() => resolveDevice(deviceRef.current), 9000);
-      player.addListener("ready", ({ device_id }: { device_id?: string }) => {
-        if (!device_id) return;
-        clearTimeout(timer);
-        deviceRef.current = device_id;
-        transferToDevice(token, device_id).catch(() => {});
-        resolveDevice(device_id);
-      });
-      player.addListener("not_ready", () => {
-        deviceRef.current = null;
-      });
-      player.addListener("authentication_error", () => {
-        deadRef.current = true;
-      });
-      player.addListener("account_error", () => {
-        deadRef.current = true;
-      });
-      player.addListener("player_state_changed", (state: any) => {
-        if (!state) return;
-        // Ignore the pre-pair sync: background pairing must not disturb the
-        // staged mid-performance default. Only the visitor's gestures and the
-        // real session they start drive the illustration.
-        if (!userToggled.current && !realRef.current) return;
-        realRef.current = true;
-        setRealActive(true);
-        if (!state.paused) {
-          if (parkTimer.current) {
-            clearTimeout(parkTimer.current);
-            parkTimer.current = null;
+  /** Hidden embed controller, created once per host node. Null = blocked CDN / no URI. */
+  const EMBED_RETRY_MS = 60_000;
+  const ensureEmbed = (): Promise<SpotifyEmbedController | null> => {
+    if (controllerRef.current) return Promise.resolve(controllerRef.current);
+    const host = embedHostRef.current;
+    const cached = controllerPromiseRef.current;
+    // Same host node → share the in-flight/fresh attempt (StrictMode-safe).
+    // A new node (real remount) or a stale failure always starts fresh.
+    if (cached && cached.host === host && Date.now() - cached.at < EMBED_RETRY_MS) return cached.p;
+    const uri = spotifyUriFromUrl(trackUrl);
+    if (!uri || !host) return Promise.resolve(null);
+    const attempt = (async (): Promise<SpotifyEmbedController | null> => {
+      const api = await loadSpotifyEmbed();
+      if (!api) return null;
+      return new Promise((resolve) => {
+        let settled = false;
+        const timer = setTimeout(() => {
+          if (!settled) {
+            settled = true;
+            resolve(null);
           }
-          realPlayingRef.current = true;
-          setVisualPlaying(true);
-          setParked(false);
-          return;
-        }
-        // Buffering blip right after a play intent — not a real pause.
-        if (Date.now() - playIntentRef.current < 1500) return;
-        realPlayingRef.current = false;
-        if (parkTimer.current) clearTimeout(parkTimer.current);
-        parkTimer.current = setTimeout(() => {
-          setVisualPlaying(false);
-          setParked(true);
-        }, 500);
+        }, 9000);
+        api.createController(host, { uri, width: 300, height: 80 }, (controller) => {
+          controller.addListener("ready", () => {
+            // Guard on the wrapper: createController replaces the host span
+            // with its iframe, so the host itself is always detached here —
+            // checking it would reject every ready event. The wrapper only
+            // detaches on a real unmount.
+            const wrap = embedWrapRef.current;
+            if (settled || (wrap && !wrap.isConnected)) return;
+            settled = true;
+            clearTimeout(timer);
+            controllerRef.current = controller;
+            setRealActive(true);
+            console.warn("[turntable] embed ready");
+            resolve(controller);
+          });
+          controller.addListener("playback_update", (e: any) => {
+            const state = e?.data;
+            console.warn("[turntable] playback_update", state && { paused: state.isPaused, buffering: state.isBuffering });
+            if (!state || state.isBuffering) return;
+            // Ignore pre-click sync: background warm-up must not disturb the
+            // staged mid-performance default.
+            if (!userToggled.current && !realPlayingRef.current) return;
+            realPlayingRef.current = !state.isPaused;
+            setVisualPlaying(!state.isPaused);
+            setParked(state.isPaused);
+          });
+        });
       });
-      playerRef.current = player;
-      const connected = await player.connect().catch(() => false);
-      if (!connected) {
-        clearTimeout(timer);
-        return false;
-      }
-      const id = await deviceGate;
-      if (!id) return false;
-      return true;
     })();
-    pairingRef.current = attempt;
-    try {
-      return await attempt;
-    } finally {
-      pairingRef.current = null;
-    }
+    controllerPromiseRef.current = { host, at: Date.now(), p: attempt };
+    attempt.catch(() => {
+      if (controllerPromiseRef.current?.p === attempt) controllerPromiseRef.current = null;
+    });
+    return attempt;
   };
 
   const togglePlayback = async () => {
     userToggled.current = true;
-    // Real playback first: one Web API call on the pre-paired device —
-    // play, pause, and resume all go through here, never the SDK toggle.
-    // Visuals update optimistically at click time (zero perceived lag); the
-    // state events only confirm. Anything that fails drops through to the
-    // illustration-only toggle.
-    try {
-      const uri = spotifyUriFromUrl(trackUrl);
-      if (uri && (await pairPlayer()) && deviceRef.current) {
-        const token = await fetchPlayerToken();
-        if (token) {
-          if (!realRef.current) {
-            // First real play: start this track on the portfolio device. The
-            // click is the user gesture, so no autoplay block.
-            if (await startTrack(token, deviceRef.current, uri)) {
-              notePlayIntent();
-              realPlayingRef.current = true;
-              setRealActive(true);
-              setVisualPlaying(true);
-              setParked(false);
-              return;
-            }
-            console.warn("[turntable] start track failed — visual fallback");
-            deadRef.current = true;
-          } else if (realPlayingRef.current) {
-            if (await pauseTrack(token, deviceRef.current)) {
-              realPlayingRef.current = false;
-              setVisualPlaying(false);
-              setParked(true);
-              return;
-            }
-            console.warn("[turntable] pause failed — visual fallback");
-          } else if (await resumeTrack(token, deviceRef.current)) {
-            notePlayIntent();
-            realPlayingRef.current = true;
-            setVisualPlaying(true);
-            setParked(false);
-            return;
-          } else {
-            console.warn("[turntable] resume failed — visual fallback");
-          }
-        }
-      }
-    } catch {
-      // Fall through to the illustration-only toggle.
+    const uri = spotifyUriFromUrl(trackUrl);
+    const prevVisual = visualPlaying;
+    if (!uri) {
+      // Illustration-only: no playable URL (e.g. fallback search link).
+      setParked(prevVisual);
+      setVisualPlaying(!prevVisual);
+      return;
     }
-    setParked(visualPlaying);
-    setVisualPlaying(!visualPlaying);
+    // First click starts the track (matching the staged mid-performance
+    // default); afterwards the embed's transport state drives the intent.
+    const willPlay = !(controllerRef.current && realPlayingRef.current);
+    // Optimistic visuals: the arm, spin, and notes react on click.
+    // playback_update events confirm or correct what was just staged.
+    setParked(!willPlay);
+    setVisualPlaying(willPlay);
+    const controller = await ensureEmbed().catch(() => null);
+    if (!controller) {
+      console.warn(`[turntable] embed unavailable (hasUri=${!!uri}) — illustration only`);
+      return; // keep the staged illustration
+    }
+    if (uri !== lastUriRef.current) {
+      if (!(await callEmbedAsync(() => controller.loadUri(uri)))) return;
+      lastUriRef.current = uri;
+    }
+    if (await callEmbedAsync(() => (willPlay ? controller.play() : controller.pause()))) {
+      realPlayingRef.current = willPlay;
+      return; // staged visuals already match
+    }
+    // Rejected (e.g. autoplay policy) — roll back so the next click retries
+    // instead of sending a no-op pause into silence.
+    realPlayingRef.current = !willPlay;
+    setParked(willPlay);
+    setVisualPlaying(!willPlay);
   };
 
-  // Pre-pair the hidden device while idle: SDK load + connect + transfer all
-  // happen before the first click, so play/pause each cost a single API call.
-  // No audio starts here (transfer uses play:false), keeping autoplay safe.
+  // Pre-create the hidden embed while idle, so a warm click is just
+  // loadUri + play. No audio starts here, keeping autoplay safe. Re-runs
+  // when the track URL arrives late (ensureEmbed is idempotent once ready).
   useEffect(() => {
     if (!spotifyUriFromUrl(trackUrl)) return;
     let idleId: number | null = null;
     let timer: ReturnType<typeof setTimeout> | null = null;
     const warm = () => {
-      pairPlayer().catch(() => {});
+      ensureEmbed().catch(() => {});
     };
     const w = window as unknown as {
       requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
@@ -321,7 +286,7 @@ export function RecordPlayer({
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, []);
+  }, [trackUrl]);
 
   return (
     <span className={`deck${visualPlaying ? " is-playing" : ""}${parked ? " is-parked" : ""}`}>
@@ -419,10 +384,26 @@ export function RecordPlayer({
         aria-pressed={visualPlaying}
         aria-describedby={playerDescription}
         title={visualPlaying ? "Pause" : "Play the song"}
+        onMouseEnter={() => {
+          ensureEmbed().catch(() => {});
+        }}
+        onFocus={() => {
+          ensureEmbed().catch(() => {});
+        }}
         onClick={() => {
           togglePlayback().catch(() => {});
         }}
       />
+      {/* Hidden Spotify embed: the API replaces the inner host with its
+          iframe, so the clipping styles live on this wrapper — which is
+          never replaced — keeping the player at 1px and out of layout. */}
+      <span
+        ref={embedWrapRef}
+        aria-hidden="true"
+        style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}
+      >
+        <span ref={embedHostRef} />
+      </span>
       <span id={playerDescription} className="sr-only">
         {realActive
           ? "This turntable plays the current track on Spotify."
