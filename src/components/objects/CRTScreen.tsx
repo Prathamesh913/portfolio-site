@@ -17,8 +17,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useInViewOnce } from "../../lib/useInViewOnce";
 
-// Matches the .crt__tube crt-collapse animation.
-const COLLAPSE_MS = 480;
+// Matches the shutdown choreography: 200ms squeeze + 240ms line hold, fade lands at 400ms.
+const COLLAPSE_MS = 400;
 
 export function CRTScreen({
   poster,
@@ -93,6 +93,7 @@ export function CRTScreen({
             <span className="crt__glass" aria-hidden="true" />
             <span className="crt__scanlines" aria-hidden="true" />
           </span>
+          <span className="crt__line" aria-hidden="true" />
         </span>
         <span className="crt__panel" aria-hidden="true">
           <span className="crt__grille">
