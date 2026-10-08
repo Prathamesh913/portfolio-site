@@ -991,6 +991,23 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   width: 1px; height: 3px; background: var(--muted);
   transform: translateX(-50%);
 }
+/* Hidden trick: the whole front panel is a power switch. Transparent, so the
+   grille/knobs/LED stay exactly as drawn; taller on coarse pointers. */
+.crt__panel-button {
+  position: absolute; z-index: 5; left: 0; right: 0; bottom: 0; height: 18px;
+  appearance: none; cursor: pointer;
+  border: 1px solid transparent; border-radius: 0 0 8px 8px;
+  background: transparent; padding: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.crt__panel-button:focus-visible {
+  border-color: var(--primary);
+  outline: 2px solid var(--primary); outline-offset: -2px;
+}
+@media (pointer: coarse) {
+  .crt__panel-button { height: 32px; }
+}
 .crt__feet { display: flex; justify-content: space-between; padding: 0 22px; }
 .crt__foot {
   display: block; width: 16px; height: 4px;
@@ -1067,6 +1084,40 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0) 70%);
   transition: opacity 220ms ease, transform 220ms ease;
 }
+/* Hidden trick: clicking fans the page edge and slides a paper bookmark out
+   from behind the cover. The ribbon sits under the cover (z-index) so it is
+   invisible while tucked in, and pokes above the book when peeking. */
+.book__pages { transition: transform 260ms ease; }
+.book.is-peeking .book__pages {
+  transform: perspective(600px) rotateY(-3deg) rotateZ(-1.6deg) translate(6px, 5px);
+}
+.book__bookmark {
+  position: absolute; z-index: 0; top: -2px; right: 14%;
+  display: block; width: 30px; height: 52px;
+  border: 1px solid var(--paper-edge); border-top: 0; border-radius: 0 0 2px 2px;
+  background: var(--paper);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 88%, 0 100%);
+  transform: translateY(8%);
+  transition: transform 320ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.book.is-peeking .book__bookmark { transform: translateY(-72%); }
+.book__bookmark-text {
+  display: block; margin-top: 5px;
+  font-family: var(--font); font-size: 0.6rem; font-weight: 700; text-align: center;
+  color: #23211d;
+}
+.book__button {
+  position: absolute; z-index: 2; inset: 0;
+  appearance: none; cursor: pointer;
+  border: 1px solid transparent; border-radius: 4px;
+  background: transparent; padding: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.book__button:focus-visible {
+  border-color: var(--primary);
+  outline: 2px solid var(--primary); outline-offset: 2px;
+}
 .book__fallback {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 0.3rem; min-height: 9rem; padding: 1rem;
@@ -1097,7 +1148,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
    fixed monochrome pattern and the picture is simply there. */
 @media (prefers-reduced-motion: reduce) {
   .deck.is-playing .deck__spin { animation: none; }
-  .deck, .deck__body, .deck__arm, .book__stage, .book__shadow { transition: none; }
+  .deck, .deck__body, .deck__arm, .book__stage, .book__shadow, .book__pages, .book__bookmark { transition: none; }
   .deck:hover { transform: none; }
   .book:hover .book__stage, .book:focus-within .book__stage { transform: none; }
   .deck__note { animation: none; }

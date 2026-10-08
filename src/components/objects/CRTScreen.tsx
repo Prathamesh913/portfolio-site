@@ -8,6 +8,10 @@
 // Layering is physical: cabinet → bezel → recessed screen well → tube (snow →
 // picture → glass). Power-on happens once when the card first enters the
 // viewport, then everything settles; reduced motion renders it static.
+//
+// Hidden trick: the front panel is a power switch. Clicking it turns the set
+// off (snow dies, picture fades, LED goes dark); clicking again replays the
+// power-on animation. Pure state toggle — no data involved.
 
 import { useState } from "react";
 import { useInViewOnce } from "../../lib/useInViewOnce";
@@ -22,11 +26,13 @@ export function CRTScreen({
   live: boolean;
 }) {
   const [failed, setFailed] = useState(false);
+  const [userOff, setUserOff] = useState(false);
   const { ref, inView } = useInViewOnce<HTMLSpanElement>();
   const hasArt = Boolean(poster) && !failed;
+  const isOn = inView && !userOff;
 
   return (
-    <span className={`crt${inView ? " is-on" : ""}${live ? " is-live" : ""}`} ref={ref}>
+    <span className={`crt${isOn ? " is-on" : ""}${live ? " is-live" : ""}`} ref={ref}>
       <span className="crt__body">
         <span className="crt__screen">
           <span className="crt__tube">
@@ -67,6 +73,14 @@ export function CRTScreen({
             <span className="crt__knob" />
           </span>
         </span>
+        <button
+          className="crt__panel-button"
+          type="button"
+          aria-label={userOff ? "Turn television on" : "Turn television off"}
+          aria-pressed={!userOff}
+          title={userOff ? "Turn on" : "Turn off"}
+          onClick={() => setUserOff((off) => !off)}
+        />
       </span>
       <span className="crt__feet" aria-hidden="true">
         <span className="crt__foot" />
