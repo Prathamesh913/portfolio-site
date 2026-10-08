@@ -57,10 +57,13 @@ export function RecordPlayer({
   const previousTrack = useRef(trackKey);
   const userToggled = useRef(false);
   const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [visualPlaying, setVisualPlaying] = useState(true);
-  const [parked, setParked] = useState(false);
-  const [notesPhase, setNotesPhase] = useState<NotesPhase>("playing");
-  const notesPhaseRef = useRef<NotesPhase>("playing");
+  // Visuals open truthful to the `playing` prop: a paused track shows the
+  // arm parked on its rest (not mid-performance), so the first tap always
+  // moves the needle instead of staging an invisible no-op.
+  const [visualPlaying, setVisualPlaying] = useState(playing);
+  const [parked, setParked] = useState(!playing);
+  const [notesPhase, setNotesPhase] = useState<NotesPhase>(playing ? "playing" : "off");
+  const notesPhaseRef = useRef<NotesPhase>(playing ? "playing" : "off");
   const armTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mounted = useRef(false);
   // Real-playback wiring: one hidden embed controller for the card's life,
@@ -99,9 +102,9 @@ export function RecordPlayer({
     }
   };
 
-  // Every visit opens mid-performance: spinning record, arm on it, notes up.
-  // After mount, live Spotify data takes over until the visitor takes control.
-  // A new track starts from fresh data, with the arm back on the record.
+  // After mount, Spotify data takes over until the visitor takes control.
+  // The arm follows the transport state both ways (drops on play, parks on
+  // pause) so the illustration can never claim the opposite of the footer.
   useEffect(() => {
     if (!mounted.current) {
       mounted.current = true;
@@ -111,7 +114,7 @@ export function RecordPlayer({
       previousTrack.current = trackKey;
       userToggled.current = false;
       setVisualPlaying(playing);
-      setParked(false);
+      setParked(!playing);
       // Follow the new track in the embed when it was playing.
       const follow = async () => {
         if (controllerRef.current && realPlayingRef.current) {
@@ -128,7 +131,10 @@ export function RecordPlayer({
       follow().catch(() => {});
       return;
     }
-    if (!userToggled.current) setVisualPlaying(playing);
+    if (!userToggled.current) {
+      setVisualPlaying(playing);
+      setParked(!playing);
+    }
   }, [playing, trackKey]);
 
   useEffect(() => {

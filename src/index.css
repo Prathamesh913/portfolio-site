@@ -877,10 +877,11 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   user-select: none;
   -webkit-user-select: none;
 }
-/* Coarse pointers: fat-finger friendly — widen toward the record so taps
-   near the tonearm still land. Fine pointers keep the precise arm-only box. */
+/* Coarse pointers: the whole turntable toggles — tapping the record is the
+   expected gesture on touch, and the illustration is too small for an
+   arm-only target. Fine pointers keep the precise arm-only box. */
 @media (pointer: coarse) {
-  .deck__arm-button { left: 35%; top: 8%; bottom: 4%; }
+  .deck__arm-button { left: 3.8%; top: 8%; bottom: 4%; }
 }
 .deck__arm-button:hover { background: rgba(255, 255, 255, 0.025); }
 .deck__arm-button:focus-visible {
