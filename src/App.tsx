@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { blogPosts, blogSeries, buildProjects, experience, galleryItems, now, skills, toolkit } from "./data";
+import { blogPosts, blogSeries, buildProjects, experience, galleryItems, skills, toolkit } from "./data";
 import type { BlogPost, GalleryItem } from "./data";
 import { allCaseStudies, CASE_ORDER } from "./data/caseStudies";
 import type { CaseStudy } from "./data/caseStudies";
@@ -10,8 +10,15 @@ import { ImageLightbox, useImageLightbox } from "./components/ImageLightbox";
 import { OutsideOfWork } from "./components/OutsideOfWork";
 import { SkillIcon } from "./components/SkillIcons";
 import { SiteHeader } from "./components/SiteHeader";
+import { useInViewOnce } from "./lib/useInViewOnce";
 
 const GITHUB_URL = "https://github.com/Prathamesh913";
+
+/** Fade-and-rise a section the first time it scrolls into view. */
+function useReveal<T extends Element>() {
+  const { ref, inView } = useInViewOnce<T>();
+  return { ref, revealClass: inView ? "reveal is-inview" : "reveal" };
+}
 
 const caseStudies: Record<string, CaseStudy> = Object.fromEntries(
   allCaseStudies.map((c) => [c.slug, c])
@@ -91,7 +98,7 @@ function GallerySection() {
 
   return (
     <div>
-      <p className="gallery-note">Scroll sideways; select any image for a larger view.</p>
+      <p className="gallery-note">Select any image for a larger view.</p>
       <div className="gallery-strip" role="list" tabIndex={0} aria-label={`Gallery: scrollable list, ${galleryItems.length} UI screenshots`}>
         {galleryItems.map((item, i) => (
           <figure className="gallery-card" role="listitem" key={item.id}>
@@ -137,6 +144,11 @@ function App() {
   const [activeSection, setActiveSection] = useState<string>("top");
   const [caseSlug, setCaseSlug] = useState<string | null>(getCaseSlug());
   const [archiveView, setArchiveView] = useState<ArchiveView>(getArchiveView);
+
+  const revealWork = useReveal<HTMLElement>();
+  const revealArchive = useReveal<HTMLElement>();
+  const revealExperience = useReveal<HTMLElement>();
+  const revealContact = useReveal<HTMLElement>();
 
   const toggleArchiveView = (view: ArchiveView) => {
     setArchiveView(view);
@@ -184,7 +196,7 @@ function App() {
   }, []);
 
   if (caseSlug && caseStudies[caseSlug]) {
-    return <CaseStudyPage data={caseStudies[caseSlug]} />;
+    return <CaseStudyPage key={caseSlug} data={caseStudies[caseSlug]} />;
   }
 
   return (
@@ -208,44 +220,13 @@ function App() {
         <section className="intro section-frame" id="top">
           <h1>Prathamesh</h1>
           <p>I design interfaces for operational software and build small tools.</p>
-          <p className="intro-meta">{now.location} — {now.statusBadge?.toLowerCase()}.</p>
-        </section>
-
-        <section className="now section-frame" aria-label="Now">
-          <div className="now-ticker">
-            <p className="now-ticker__label"><span className="now-dot" aria-hidden="true">●</span> Now · {now.updatedAt}</p>
-            <div className="now-ticker__viewport">
-              <div className="now-ticker__track">
-                {[
-                  `Building: ${now.building}`,
-                  `Designing: ${now.designing}`,
-                  "Improving: current craft focus",
-                  now.reading ? `Learning: ${now.reading.charAt(0).toLowerCase() + now.reading.slice(1)}` : "",
-                ].filter(Boolean).map((text) => (
-                  <span className="now-ticker__item" key={text}>
-                    <span aria-hidden="true" className="now-ticker__sep">◆</span> {text}
-                  </span>
-                ))}
-                {[
-                  `Building: ${now.building}`,
-                  `Designing: ${now.designing}`,
-                  "Improving: current craft focus",
-                  now.reading ? `Learning: ${now.reading.charAt(0).toLowerCase() + now.reading.slice(1)}` : "",
-                ].filter(Boolean).map((text) => (
-                  <span className="now-ticker__item" key={`dup-${text}`} aria-hidden="true">
-                    <span aria-hidden="true" className="now-ticker__sep">◆</span> {text}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
         </section>
 
         <CurrentlySection />
 
         <GithubActivity />
 
-        <section className="work section-frame" id="work" aria-label="Work">
+        <section className={`work section-frame ${revealWork.revealClass}`} ref={revealWork.ref} id="work" aria-label="Work">
           <h2>Work</h2>
 
           <div className="collections-strip" role="list" tabIndex={0} aria-label={`Case studies: scrollable list, ${caseProjects.length} projects`}>
@@ -344,7 +325,7 @@ function App() {
           </div>
         </section>
 
-        <section className="collections section-frame" id="archive" aria-label="Archive">
+        <section className={`collections section-frame ${revealArchive.revealClass}`} ref={revealArchive.ref} id="archive" aria-label="Archive">
           <div className="collections-head">
             <h2>Archive</h2>
             <div className="collections-toggle" role="group" aria-label="Switch between gallery and blogs">
@@ -354,9 +335,11 @@ function App() {
           </div>
 
           {archiveView === "gallery" ? (
-            <GallerySection />
+            <div className="archive-panel" key="gallery">
+              <GallerySection />
+            </div>
           ) : (
-            <div>
+            <div className="archive-panel" key="blogs">
               {(() => {
                 const seriesPosts = blogPosts.filter((p) => p.series === "enterprise-ux").sort((a, b) => (a.seriesOrder ?? 0) - (b.seriesOrder ?? 0));
                 const standalonePosts = blogPosts.filter((p) => !p.series).sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
@@ -379,7 +362,7 @@ function App() {
 
         <div id="about" className="about-anchor" aria-hidden="true" />
 
-        <section className="experience section-frame" aria-label="Experience">
+        <section className={`experience section-frame ${revealExperience.revealClass}`} ref={revealExperience.ref} aria-label="Experience">
           <h2>Experience</h2>
           <div className="exp-list">
             {experience.map((job, i) => (
@@ -437,13 +420,13 @@ function App() {
 
         <OutsideOfWork />
 
-        <footer className="site-footer section-frame" id="contact">
+        <footer className={`site-footer section-frame ${revealContact.revealClass}`} ref={revealContact.ref} id="contact">
           <p>
             <a href={GITHUB_URL} target="_blank" rel="noreferrer">github</a>
             {" · "}
             <span className="email-note">Email available on request</span>
           </p>
-          <p className="footer-meta">© 2026 Prathamesh · Updated {now.updatedAt} · <a href="#top">top ↑</a></p>
+          <p className="footer-meta">© 2026 Prathamesh · <a href="#top">top ↑</a></p>
         </footer>
       </main>
     </div>

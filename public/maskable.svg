@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <title>Prathamesh</title>
+  <!-- Maskable: full bleed with no rounded corners (the mask supplies those),
+       art scaled about the centre so it clears the 40/64 safe circle. The
+       underline no longer reaches the edges here — a circle mask would clip it. -->
+  <rect width="64" height="64" fill="#0a0a0a"/>
+  <g transform="translate(32 32) scale(0.56) translate(-32 -32)">
+    <g fill="#EC5B2B">
+      <rect x="15" y="14" width="34" height="26" rx="5"/>
+      <rect x="15" y="14" width="7" height="40"/>
+    </g>
+    <rect x="22" y="21" width="20" height="12" rx="3" fill="#0a0a0a"/>
+    <rect x="0" y="58" width="64" height="6" fill="#EC5B2B"/>
+  </g>
+</svg>

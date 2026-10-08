@@ -113,8 +113,13 @@ html { scroll-behavior: smooth; }
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 2rem; overflow-x: clip; }
+/* Never allow sideways page scroll: `clip` where supported (no scroll
+   container, sticky-safe), `hidden` as the fallback for older browsers. */
+html, body { overflow-x: hidden; overflow-x: clip; }
+html { scroll-behavior: smooth; scroll-padding-top: 2rem; }
 body { margin: 0; min-width: 320px; background: var(--bg); color: var(--ink); line-height: 1.6; }
+/* Raster images can never exceed their container — live artwork included. */
+img { max-width: 100%; }
 a { color: inherit; text-decoration: none; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 4px; }
 
@@ -128,6 +133,16 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 
 .site-shell { overflow-x: clip; }
 .section-frame { width: min(calc(100% - var(--gutter) * 2), var(--content-max)); margin: 0 auto; }
+
+/* Scroll reveal — a section that would otherwise snap into being on first
+   sight. Uses the standalone `translate` property so it never fights an
+   element's own `transform`. Toggled from useReveal() in App.tsx. */
+.reveal {
+  opacity: 0;
+  translate: 0 10px;
+  transition: opacity 400ms cubic-bezier(0.23, 1, 0.32, 1), translate 400ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.reveal.is-inview { opacity: 1; translate: 0 0; }
 
 /* Mono for labels and headings; sans for body text */
 .wordmark, .site-nav, .skip-link,
@@ -322,11 +337,33 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   font-family: inherit; font-size: 0.74rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--muted);
-  transition: color 150ms ease, background 150ms ease;
+  transition: color 150ms ease, background 150ms ease, transform 120ms ease-out;
 }
 .collections-toggle button + button { border-left: 1px solid var(--border); }
 .collections-toggle button:hover { color: var(--ink); }
 .collections-toggle button[aria-pressed="true"] { background: var(--primary-deep); border-color: var(--primary-deep); color: #fff; }
+/* Press feedback only — this toggle is used tens of times a session, so the
+   motion stays near-imperceptible. */
+.collections-toggle button:active { transform: scale(0.98); }
+
+/* Archive view swap (Gallery <-> Blogs) replaces the panel outright; the key on
+   .archive-panel replays this each time. Stagger is decorative and capped. */
+.archive-panel { animation: archive-panel-in 240ms cubic-bezier(0.23, 1, 0.32, 1) backwards; }
+@keyframes archive-panel-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.archive-panel .coll-card { animation: archive-card-in 240ms cubic-bezier(0.23, 1, 0.32, 1) backwards; }
+.archive-panel .coll-card:nth-child(2) { animation-delay: 40ms; }
+.archive-panel .coll-card:nth-child(3) { animation-delay: 80ms; }
+.archive-panel .coll-card:nth-child(4) { animation-delay: 120ms; }
+.archive-panel .coll-card:nth-child(5) { animation-delay: 160ms; }
+.archive-panel .coll-card:nth-child(6) { animation-delay: 200ms; }
+.archive-panel .coll-card:nth-child(n + 7) { animation-delay: 240ms; }
+@keyframes archive-card-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 .collections-strip {
   display: flex; gap: 1.25rem;
@@ -357,7 +394,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 }
 .coll-title a { transition: color 150ms ease, border-color 150ms ease; }
 .coll-title a:hover { color: var(--primary); border-color: var(--primary); }
-.coll-desc { margin: 0.45rem 0 0; font-size: 0.84rem; color: var(--ink-soft); }
+.coll-desc { margin: 0.45rem 0 0; font-size: 0.84rem; color: var(--ink-soft); overflow-wrap: break-word; }
 .coll-tags { margin: 0.55rem 0 0; font-family: var(--font); font-size: 0.7rem; color: var(--muted); }
 .coll-links { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin: 0.75rem 0 0; font-size: 0.8rem; margin-top: auto; padding-top: 0.75rem; }
 .coll-links a { border-bottom: 1px solid var(--muted); transition: color 150ms ease, border-color 150ms ease; }
@@ -437,7 +474,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .gallery-thumb img { width: 100%; height: auto; display: block; }
 .gallery-card figcaption { display: flex; flex-direction: column; gap: 0.15rem; margin-top: 0.6rem; }
 .gallery-title { font-family: var(--font); font-size: 0.85rem; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); overflow-wrap: break-word; }
-.gallery-meta { font-family: var(--font); font-size: 0.72rem; color: var(--muted); }
+.gallery-meta { font-family: var(--font); font-size: 0.72rem; color: var(--muted); overflow-wrap: break-word; }
 
 .gallery-lightbox {
   position: fixed; inset: 0; z-index: 200;
@@ -568,6 +605,15 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 
 /* Case-study pages — same system, wider and image-led */
 .cs .section-frame { width: min(calc(100% - var(--gutter) * 2), var(--content-wide)); }
+/* Route entrance: the hash router swaps pages without a document load, so the
+   case study would otherwise hard-cut into place. Keyed on the slug in App.tsx
+   so prev/next re-plays it. */
+.cs-page { animation: page-in 320ms cubic-bezier(0.23, 1, 0.32, 1) backwards; }
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .cs-page .site-header { width: min(calc(100% - var(--gutter) * 2), var(--content-wide)); }
 .cs-page .site-nav a { display: inline-flex; align-items: center; min-height: 44px; }
 .cs-header { padding: 3rem 0 2rem; }
@@ -657,8 +703,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   .exp-highlights li { font-size: 1rem; }
   .exp-highlights li + li { margin-top: 1rem; }
   .exp-supporting { margin-top: 1.35rem; }
-  .coll-card { flex-basis: min(20rem, 82vw); }
-  .coll-card--project { flex-basis: min(20rem, 82vw); }
   .work .coll-desc { min-height: 0; }
   .coll-media--link:hover .coll-cover, .coll-media--link:focus-visible .coll-cover { transform: none; }
 }
@@ -698,7 +742,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   margin: 0.65rem 0 0; font-family: var(--font); font-size: 0.95rem; font-weight: 700;
   letter-spacing: -0.01em; line-height: 1.35; overflow-wrap: break-word;
 }
-.currently-meta { margin: 0.3rem 0 0; font-size: 0.8rem; color: var(--muted); }
+.currently-meta { margin: 0.3rem 0 0; font-size: 0.8rem; color: var(--muted); overflow-wrap: break-word; }
 .currently-empty { margin: 0.7rem 0 0; font-size: 0.84rem; color: var(--muted); }
 /* Object first, then caption, then the state + link footer. */
 .currently-foot {
@@ -828,6 +872,15 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   appearance: none; cursor: pointer;
   border: 1px solid transparent; border-radius: 10px;
   background: transparent; padding: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* Coarse pointers: fat-finger friendly — widen toward the record so taps
+   near the tonearm still land. Fine pointers keep the precise arm-only box. */
+@media (pointer: coarse) {
+  .deck__arm-button { left: 35%; top: 8%; bottom: 4%; }
 }
 .deck__arm-button:hover { background: rgba(255, 255, 255, 0.025); }
 .deck__arm-button:focus-visible {
@@ -1400,7 +1453,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   text-transform: uppercase; letter-spacing: 0.08em; color: #fff;
 }
 .oow-video__body { display: flex; flex-direction: column; gap: 0.35rem; padding: 0.7rem 0.8rem 0.85rem; }
-.oow-video__title { font-family: var(--font); font-size: 0.82rem; font-weight: 700; color: var(--ink); line-height: 1.35; }
+.oow-video__title { font-family: var(--font); font-size: 0.82rem; font-weight: 700; color: var(--ink); line-height: 1.35; overflow-wrap: break-word; }
 .oow-video__title--short { color: var(--muted); }
 .oow-video__tags { display: flex; flex-wrap: wrap; gap: 0.35rem; font-family: var(--font); font-size: 0.68rem; color: var(--muted); }
 
@@ -1424,6 +1477,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 }
 .github-card__head {
   display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  flex-wrap: wrap;
   font-family: var(--font); font-size: 0.8rem;
 }
 .github-card__head a { border-bottom: 1px solid var(--muted); transition: color 150ms ease, border-color 150ms ease; }
@@ -1511,3 +1565,56 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .gh-swatch.gh-l2 { background: var(--gh-2); border-color: transparent; }
 .gh-swatch.gh-l3 { background: var(--gh-3); border-color: transparent; }
 .gh-swatch.gh-l4 { background: var(--gh-4); border-color: transparent; }
+
+/* Mobile — no sideways scrolling. This block lives last on purpose: it must
+   come after every strip's base rule to win the cascade at equal
+   specificity. Every card strip stacks vertically so the small viewport moves
+   in one direction only. (flex-basis would become a fixed *height* in a
+   column, so cards are reset to `flex: none`.)
+   Deliberately untouched: the GitHub year grid (dense data viz — horizontal
+   scroll is the universal pattern, same as github.com) and the Now ticker
+   (an auto-playing marquee, not a scroll region). */
+@media (max-width: 600px) {
+  .collections-strip,
+  .gallery-strip {
+    flex-direction: column;
+    align-items: stretch;
+    overflow: visible;
+  }
+  .collections-strip .coll-card,
+  .gallery-strip .gallery-card {
+    flex: none;
+    width: 100%;
+  }
+  .recently-strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+  .cs-screens {
+    flex-direction: column;
+    overflow: visible;
+  }
+  .cs-screens .cs-screen {
+    flex: none;
+    width: 100%;
+  }
+  .cs-screens--portrait .cs-screen {
+    max-width: 18rem;
+    margin-inline: auto;
+  }
+  /* The photo line stands its prints in a column: wire and clips hidden. */
+  .oow-line__wire,
+  .oow-line__clip { display: none; }
+  .oow-line__track {
+    flex-direction: column;
+    align-items: center;
+    overflow: visible;
+    cursor: default;
+  }
+  .oow-line__item { padding-top: 0; }
+  /* The bookshelf becomes a wrapping grid: plank hidden. */
+  .shelf-scroll { overflow: visible; }
+  .shelf { width: auto; flex-wrap: wrap; justify-content: center; }
+  .shelf::after { display: none; }
+}

@@ -23,6 +23,7 @@ Milestone 2 focused refinement pass is complete and verified. The visual foundat
 - [x] Refinement Pass: Media surfaces hardened for resilient aspect ratios (portrait, landscape, square, tall).
 - [x] Refinement Pass: NOW header navigation updated with live status indicator and smooth anchor highlighting.
 - [x] Production build re-verified cleanly with zero errors.
+- [x] Motion pass: content-layer transitions added where content previously teleported — case study route entrance, archive Gallery/Blogs swap with a capped card stagger, scroll reveal for Work/Archive/Experience/Contact via `useInViewOnce`, and near-imperceptible press feedback on the archive toggle.
 
 # Current Phase
 

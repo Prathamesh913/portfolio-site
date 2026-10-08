@@ -83,6 +83,10 @@ export function RecordPlayer({
   const lastUriRef = useRef<string | null>(null);
   const realPlayingRef = useRef(false);
   const [realActive, setRealActive] = useState(false);
+  // Guards the async toggle: extra taps while loadUri/play is in flight are
+  // ignored so the arm can't flip-flop mid-transition (mobile double-tap).
+  const togglingRef = useRef(false);
+  const deckRef = useRef<HTMLSpanElement | null>(null);
 
   /** Awaited embed call — false instead of an unhandled rejection. */
   const callEmbedAsync = async (fn: () => unknown): Promise<boolean> => {
@@ -226,70 +230,83 @@ export function RecordPlayer({
   };
 
   const togglePlayback = async () => {
-    userToggled.current = true;
-    const uri = spotifyUriFromUrl(trackUrl);
-    const prevVisual = visualPlaying;
-    if (!uri) {
-      // Illustration-only: no playable URL (e.g. fallback search link).
-      setParked(prevVisual);
-      setVisualPlaying(!prevVisual);
-      return;
+    // Ignore re-entrant taps while the previous toggle is still awaiting the
+    // embed — otherwise the arm flip-flops mid-transition on mobile.
+    if (togglingRef.current) return;
+    togglingRef.current = true;
+    try {
+      userToggled.current = true;
+      const uri = spotifyUriFromUrl(trackUrl);
+      const prevVisual = visualPlaying;
+      if (!uri) {
+        // Illustration-only: no playable URL (e.g. fallback search link).
+        setParked(prevVisual);
+        setVisualPlaying(!prevVisual);
+        return;
+      }
+      // First click starts the track (matching the staged mid-performance
+      // default); afterwards the embed's transport state drives the intent.
+      const willPlay = !(controllerRef.current && realPlayingRef.current);
+      // Optimistic visuals: the arm, spin, and notes react on click.
+      // playback_update events confirm or correct what was just staged.
+      setParked(!willPlay);
+      setVisualPlaying(willPlay);
+      const controller = await ensureEmbed().catch(() => null);
+      if (!controller) {
+        console.warn(`[turntable] embed unavailable (hasUri=${!!uri}) — illustration only`);
+        return; // keep the staged illustration
+      }
+      if (uri !== lastUriRef.current) {
+        if (!(await callEmbedAsync(() => controller.loadUri(uri)))) return;
+        lastUriRef.current = uri;
+      }
+      if (await callEmbedAsync(() => (willPlay ? controller.play() : controller.pause()))) {
+        realPlayingRef.current = willPlay;
+        return; // staged visuals already match
+      }
+      // Rejected (e.g. autoplay policy) — roll back so the next click retries
+      // instead of sending a no-op pause into silence.
+      realPlayingRef.current = !willPlay;
+      setParked(willPlay);
+      setVisualPlaying(!willPlay);
+    } finally {
+      togglingRef.current = false;
     }
-    // First click starts the track (matching the staged mid-performance
-    // default); afterwards the embed's transport state drives the intent.
-    const willPlay = !(controllerRef.current && realPlayingRef.current);
-    // Optimistic visuals: the arm, spin, and notes react on click.
-    // playback_update events confirm or correct what was just staged.
-    setParked(!willPlay);
-    setVisualPlaying(willPlay);
-    const controller = await ensureEmbed().catch(() => null);
-    if (!controller) {
-      console.warn(`[turntable] embed unavailable (hasUri=${!!uri}) — illustration only`);
-      return; // keep the staged illustration
-    }
-    if (uri !== lastUriRef.current) {
-      if (!(await callEmbedAsync(() => controller.loadUri(uri)))) return;
-      lastUriRef.current = uri;
-    }
-    if (await callEmbedAsync(() => (willPlay ? controller.play() : controller.pause()))) {
-      realPlayingRef.current = willPlay;
-      return; // staged visuals already match
-    }
-    // Rejected (e.g. autoplay policy) — roll back so the next click retries
-    // instead of sending a no-op pause into silence.
-    realPlayingRef.current = !willPlay;
-    setParked(willPlay);
-    setVisualPlaying(!willPlay);
   };
 
-  // Pre-create the hidden embed while idle, so a warm click is just
-  // loadUri + play. No audio starts here, keeping autoplay safe. Re-runs
-  // when the track URL arrives late (ensureEmbed is idempotent once ready).
+  // Pre-create the hidden embed as soon as the deck is visible, so a warm
+  // click is just loadUri + play. No audio starts here, keeping autoplay
+  // safe. Re-runs when the track URL arrives late (ensureEmbed is idempotent
+  // once ready). IntersectionObserver covers touch devices where hover warm
+  // never fires and requestIdleCallback may not exist.
   useEffect(() => {
     if (!spotifyUriFromUrl(trackUrl)) return;
-    let idleId: number | null = null;
-    let timer: ReturnType<typeof setTimeout> | null = null;
     const warm = () => {
       ensureEmbed().catch(() => {});
     };
-    const w = window as unknown as {
-      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
-      cancelIdleCallback?: (id: number) => void;
-    };
-    if (typeof w.requestIdleCallback === "function") {
-      idleId = w.requestIdleCallback(warm, { timeout: 3000 });
-      return () => {
-        if (idleId !== null) w.cancelIdleCallback?.(idleId);
-      };
-    }
-    timer = setTimeout(warm, 1500);
+    const node = deckRef.current;
+    // Warm shortly after mount even off-screen, as a fallback.
+    const fallback = setTimeout(warm, 800);
+    if (!node || typeof IntersectionObserver !== "function") return () => clearTimeout(fallback);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          warm();
+          observer.disconnect();
+          clearTimeout(fallback);
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(node);
     return () => {
-      if (timer) clearTimeout(timer);
+      observer.disconnect();
+      clearTimeout(fallback);
     };
   }, [trackUrl]);
 
   return (
-    <span className={`deck${visualPlaying ? " is-playing" : ""}${parked ? " is-parked" : ""}`}>
+    <span ref={deckRef} className={`deck${visualPlaying ? " is-playing" : ""}${parked ? " is-parked" : ""}`}>
       <svg className="deck__svg" viewBox="0 0 160 120" preserveAspectRatio="none" aria-hidden="true" focusable="false">
         <defs>
           <clipPath id={labelClip}>
@@ -390,8 +407,15 @@ export function RecordPlayer({
         onFocus={() => {
           ensureEmbed().catch(() => {});
         }}
+        onPointerDown={() => {
+          // Touch fires pointerdown ~50-100ms before click: use that window
+          // to finish embed creation so play() stays close to the gesture.
+          ensureEmbed().catch(() => {});
+        }}
         onClick={() => {
-          togglePlayback().catch(() => {});
+          togglePlayback().catch(() => {
+            togglingRef.current = false;
+          });
         }}
       />
       {/* Hidden Spotify embed: the API replaces the inner host with its

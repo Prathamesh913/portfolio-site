@@ -95,14 +95,5 @@ export type BlogPost = {
   seriesOrder?: number;
 };
 
-export type NowSnapshot = {
-  updatedAt: string;
-  designing: string;
-  building: string;
-  exploring: string;
-  reading?: string;
-  location?: string;
-  statusBadge?: string;
-  note: string;
-};
+
 

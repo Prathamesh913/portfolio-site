@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <title>Prathamesh</title>
+  <!-- Lowercase p, drawn as geometry rather than <text> so it does not depend
+       on JetBrains Mono being installed on the viewer's machine. Uniform 7-unit
+       walls, 34x26 bowl on a 14-unit descender; outer corners use the site's
+       small-radius language. -->
+  <rect width="64" height="64" fill="#0a0a0a"/>
+  <g fill="#EC5B2B">
+    <rect x="15" y="14" width="34" height="26" rx="5"/>
+    <rect x="15" y="14" width="7" height="40"/>
+  </g>
+  <!-- Counter -->
+  <rect x="22" y="21" width="20" height="12" rx="3" fill="#0a0a0a"/>
+  <!-- Full-bleed underline: the active-nav rule from index.css, run off all
+       three open edges. -->
+  <rect x="0" y="58" width="64" height="6" fill="#EC5B2B"/>
+</svg>
