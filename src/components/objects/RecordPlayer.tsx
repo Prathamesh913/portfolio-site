@@ -33,6 +33,10 @@ const GROOVES = (() => {
 
 const ARM_SETTLE_MS = 620; // matches the .deck__arm transition
 const NOTE_FADE_MS = 620; // 500ms glyph fade + margin
+// Stale embed reports stop overriding a fresh tap after this long. Covers a
+// cold mobile start (script + controller + loadUri + play); warm taps settle
+// in milliseconds and confirm via a matching report, which clears early.
+const INTENT_GRACE_MS = 4000;
 
 type NotesPhase = "off" | "arming" | "playing" | "fading";
 
@@ -85,6 +89,11 @@ export function RecordPlayer({
   } | null>(null);
   const lastUriRef = useRef<string | null>(null);
   const realPlayingRef = useRef(false);
+  // The tap's intent + timestamp. Reports from the embed that contradict it
+  // inside the grace window are stale (e.g. the pre-play paused state that
+  // arrives while loadUri/play is still in flight) and must not move the arm —
+  // otherwise one tap makes the needle drop, lift, and drop again.
+  const intentRef = useRef<{ willPlay: boolean; at: number } | null>(null);
   const [realActive, setRealActive] = useState(false);
   // Guards the async toggle: extra taps while loadUri/play is in flight are
   // ignored so the arm can't flip-flop mid-transition (mobile double-tap).
@@ -113,6 +122,7 @@ export function RecordPlayer({
     if (previousTrack.current !== trackKey) {
       previousTrack.current = trackKey;
       userToggled.current = false;
+      intentRef.current = null;
       setVisualPlaying(playing);
       setParked(!playing);
       // Follow the new track in the embed when it was playing.
@@ -221,6 +231,15 @@ export function RecordPlayer({
             // Ignore pre-click sync: background warm-up must not disturb the
             // staged mid-performance default.
             if (!userToggled.current && !realPlayingRef.current) return;
+            // A fresh tap owns the arm for a grace window: contradicting
+            // reports are stale in-flight states, not new facts.
+            const intent = intentRef.current;
+            if (intent) {
+              if (Date.now() - intent.at < INTENT_GRACE_MS) {
+                if (!state.isPaused !== intent.willPlay) return;
+              }
+              intentRef.current = null;
+            }
             realPlayingRef.current = !state.isPaused;
             setVisualPlaying(!state.isPaused);
             setParked(state.isPaused);
@@ -253,6 +272,7 @@ export function RecordPlayer({
       // First click starts the track (matching the staged mid-performance
       // default); afterwards the embed's transport state drives the intent.
       const willPlay = !(controllerRef.current && realPlayingRef.current);
+      intentRef.current = { willPlay, at: Date.now() };
       // Optimistic visuals: the arm, spin, and notes react on click.
       // playback_update events confirm or correct what was just staged.
       setParked(!willPlay);
@@ -272,6 +292,7 @@ export function RecordPlayer({
       }
       // Rejected (e.g. autoplay policy) — roll back so the next click retries
       // instead of sending a no-op pause into silence.
+      intentRef.current = null;
       realPlayingRef.current = !willPlay;
       setParked(willPlay);
       setVisualPlaying(!willPlay);
