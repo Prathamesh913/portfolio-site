@@ -534,7 +534,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 }
 
 /* Supporting sections */
-.about-anchor { scroll-margin-top: 1rem; }
+.experience-anchor { scroll-margin-top: 1rem; }
 .exp-list { border-bottom: 1px solid var(--border); }
 .exp-row { display: grid; grid-template-columns: 2.5rem 1fr; gap: 0 1.1rem; padding: 2.5rem 0; border-top: 1px solid var(--border); }
 .exp-row:first-child { border-top: 0; padding-top: 1.5rem; }

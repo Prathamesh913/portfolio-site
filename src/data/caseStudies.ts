@@ -51,7 +51,6 @@ export type CaseStudy = {
   galleriesIntro?: string;
   omittedNote?: CaseStudyOmittedNote;
   reflection: string[];
-  sourceUrl: string;
   marketplaceUrl?: string;
 };
 
@@ -255,7 +254,7 @@ export const serviceChecklists: CaseStudy = {
     "Shadowing service executives in working kitchens is what shaped the zone-based interaction model — the interface had to follow the room, not a question number.",
     "The pivot taught me that the fastest way to fix an experience is sometimes to fix the architecture underneath it.",
   ],
-  sourceUrl: "https://prathameshdesigns.framer.website/servicechecklists",
+
 };
 
 // ---------------------------------------------------------------------------
@@ -334,7 +333,7 @@ export const recognitionPlatform: CaseStudy = {
     },
   ],
   reflection: [],
-  sourceUrl: "https://prathameshdesigns.framer.website/recognitionplatform",
+
 };
 
 // ---------------------------------------------------------------------------
@@ -402,7 +401,7 @@ export const policyAgentApp: CaseStudy = {
     },
   ],
   reflection: [],
-  sourceUrl: "https://prathameshdesigns.framer.website/policyagentapp",
+
 };
 
 // ---------------------------------------------------------------------------
@@ -471,7 +470,7 @@ export const mutualFundsApp: CaseStudy = {
     },
   ],
   reflection: [],
-  sourceUrl: "https://prathameshdesigns.framer.website/mutualfundsapp",
+
 };
 
 // ---------------------------------------------------------------------------
@@ -505,7 +504,7 @@ export const ashwiniFoods: CaseStudy = {
     },
   ],
   reflection: [],
-  sourceUrl: "https://prathameshdesigns.framer.website/ashwinifoods",
+
 };
 
 // ---------------------------------------------------------------------------
@@ -541,7 +540,7 @@ export const icelandTourism: CaseStudy = {
     },
   ],
   reflection: [],
-  sourceUrl: "https://prathameshdesigns.framer.website/icelandcatalogue",
+
 };
 
 export const allCaseStudies: CaseStudy[] = [

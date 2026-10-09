@@ -96,7 +96,6 @@ export function CaseStudyPage({ data }: { data: CaseStudy }) {
         wordmarkText={<>← prathamesh</>}
         navLabel="Secondary navigation"
       >
-        <a href={data.sourceUrl} target="_blank" rel="noreferrer" aria-label={`View original ${data.title} project (opens in new tab)`}>original ↗</a>
         {data.marketplaceUrl && (
           <a href={data.marketplaceUrl} target="_blank" rel="noreferrer" aria-label={`View ${data.title} on the Omarchy marketplace (opens in new tab)`}>marketplace ↗</a>
         )}
@@ -178,8 +177,6 @@ export function CaseStudyPage({ data }: { data: CaseStudy }) {
         <footer className="site-footer section-frame">
           <p>
             <a href="#/">← back to work</a>
-            {" · "}
-            <a href={data.sourceUrl} target="_blank" rel="noreferrer" aria-label={`View original ${data.title} project (opens in new tab)`}>view original ↗</a>
             {data.marketplaceUrl && (
               <>
                 {" · "}

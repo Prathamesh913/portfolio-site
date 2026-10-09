@@ -179,7 +179,7 @@ function App() {
   }, [caseSlug]);
 
   useEffect(() => {
-    const ids = ["work", "archive", "about", "contact"];
+    const ids = ["work", "archive", "experience", "contact"];
     const elements = ids
       .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => el !== null);
@@ -212,7 +212,7 @@ function App() {
       >
         <a href="#work" className={activeSection === "work" ? "is-active" : ""}>work</a>
         <a href="#archive" className={activeSection === "archive" ? "is-active" : ""}>archive</a>
-        <a href="#about" className={activeSection === "about" ? "is-active" : ""}>about</a>
+        <a href="#experience" className={activeSection === "experience" ? "is-active" : ""}>experience</a>
         <a href={GITHUB_URL} target="_blank" rel="noreferrer">github</a>
         <a href="#contact" className={activeSection === "contact" ? "is-active" : ""}>contact</a>
       </SiteHeader>
@@ -253,11 +253,6 @@ function App() {
                     <a className="coll-link coll-link--primary" href={href}>
                       {actionLabel}<span className="coll-link__arrow" aria-hidden="true">→</span>
                     </a>
-                    {cs.sourceUrl.includes("github.com") && (
-                      <a href={cs.sourceUrl} target="_blank" rel="noreferrer">
-                        GitHub ↗<span className="sr-only">: {cs.title} repository (opens in a new tab)</span>
-                      </a>
-                    )}
                     {cs.marketplaceUrl && (
                       <a href={cs.marketplaceUrl} target="_blank" rel="noreferrer">
                         Marketplace ↗<span className="sr-only">: {cs.title} on the Omarchy marketplace (opens in a new tab)</span>
@@ -269,8 +264,8 @@ function App() {
             })}
           </div>
 
-          <h3 className="work-group-label">Maker tools</h3>
-          <div className="collections-strip" role="list" tabIndex={0} aria-label={`Maker tools: scrollable list, ${toolProjects.length} tools`}>
+          <h3 className="work-group-label">Playground</h3>
+          <div className="collections-strip" role="list" tabIndex={0} aria-label={`Playground: scrollable list, ${toolProjects.length} tools`}>
             {toolProjects.map((project) => {
               const primaryHref = project.liveUrl ?? project.marketplaceUrl;
               const primaryLabel = project.liveUrl ? "Visit" : "View marketplace";
@@ -361,7 +356,7 @@ function App() {
           )}
         </section>
 
-        <div id="about" className="about-anchor" aria-hidden="true" />
+        <div id="experience" className="experience-anchor" aria-hidden="true" />
 
         <section className={`experience section-frame ${revealExperience.revealClass}`} ref={revealExperience.ref} aria-label="Experience">
           <h2>Experience</h2>

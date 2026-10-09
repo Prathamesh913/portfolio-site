@@ -6,7 +6,8 @@ type SiteHeaderProps = {
   wordmarkLabel: string;
   wordmarkText: ReactNode;
   navLabel: string;
-  children: ReactNode;
+  /** Omit when the page has no nav links: nav + menu button stay hidden. */
+  children?: ReactNode;
 };
 
 function MenuIcon() {
@@ -112,33 +113,37 @@ export function SiteHeader({
         {wordmarkText}
       </a>
       <div className="site-header__group" ref={groupRef}>
-        <nav className="site-nav" aria-label={navLabel}>
-          {children}
-        </nav>
+        {children && (
+          <nav className="site-nav" aria-label={navLabel}>
+            {children}
+          </nav>
+        )}
         <ThemeToggle />
-        <div className="nav-menu">
-          <button
-            type="button"
-            className="nav-menu-btn"
-            ref={buttonRef}
-            aria-expanded={open}
-            aria-controls={menuId}
-            aria-label={open ? "Close navigation menu" : "Open navigation menu"}
-            onClick={() => setOpen((value) => !value)}
-          >
-            {open ? <CloseIcon /> : <MenuIcon />}
-          </button>
-          {open && (
-            <nav
-              className="nav-menu-panel"
-              id={menuId}
-              aria-label={navLabel}
-              onClick={() => setOpen(false)}
+        {children && (
+          <div className="nav-menu">
+            <button
+              type="button"
+              className="nav-menu-btn"
+              ref={buttonRef}
+              aria-expanded={open}
+              aria-controls={menuId}
+              aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+              onClick={() => setOpen((value) => !value)}
             >
-              {children}
-            </nav>
-          )}
-        </div>
+              {open ? <CloseIcon /> : <MenuIcon />}
+            </button>
+            {open && (
+              <nav
+                className="nav-menu-panel"
+                id={menuId}
+                aria-label={navLabel}
+                onClick={() => setOpen(false)}
+              >
+                {children}
+              </nav>
+            )}
+          </div>
+        )}
       </div>
     </header>
   );
