@@ -2,7 +2,7 @@
 
 /* OpenCode orng theme — dark-first */
 :root {
-  --bg: #0a0a0a;
+  --bg: #000000;
   --panel: #141414;
   --element: #1e1e1e;
   --border: #262626;
@@ -37,7 +37,7 @@
 
 /* Manual override — set from localStorage / toggle before first paint. */
 :root[data-theme="dark"] {
-  --bg: #0a0a0a;
+  --bg: #000000;
   --panel: #141414;
   --element: #1e1e1e;
   --border: #262626;
