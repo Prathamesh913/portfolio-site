@@ -9,7 +9,7 @@ import { GithubActivity } from "./components/GithubActivity";
 import { ImageLightbox, useImageLightbox } from "./components/ImageLightbox";
 import { OutsideOfWork } from "./components/OutsideOfWork";
 import { SkillIcon } from "./components/SkillIcons";
-import { SiteHeader } from "./components/SiteHeader";
+import { ScrollProgress, SiteHeader } from "./components/SiteHeader";
 import { useInViewOnce } from "./lib/useInViewOnce";
 
 const GITHUB_URL = "https://github.com/Prathamesh913";
@@ -201,6 +201,7 @@ function App() {
 
   return (
     <div className="site-shell">
+      <ScrollProgress />
       <a className="skip-link" href="#work">Skip to work</a>
 
       <SiteHeader

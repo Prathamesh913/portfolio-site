@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import type { CaseStudy } from "../data/caseStudies";
 import { CASE_ORDER, allCaseStudies } from "../data/caseStudies";
 import { ImageLightbox, useImageLightbox } from "./ImageLightbox";
-import { SiteHeader } from "./SiteHeader";
+import { ScrollProgress, SiteHeader } from "./SiteHeader";
 
 function getRelated(slug: string): { prev?: CaseStudy; next?: CaseStudy } {
   const i = CASE_ORDER.indexOf(slug);
@@ -87,6 +87,7 @@ export function CaseStudyPage({ data }: { data: CaseStudy }) {
 
   return (
     <div className="site-shell cs-page">
+      <ScrollProgress />
       <a className="skip-link" href="#cs-overview">Skip to overview</a>
 
       <SiteHeader

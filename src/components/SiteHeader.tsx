@@ -39,6 +39,40 @@ function CloseIcon() {
 
 // Shared header: display name + theme toggle always visible; below 600px the
 // nav links collapse behind a menu icon. Used by home and case-study pages.
+
+// Quiet top-edge scroll progress: a 2px hairline in the accent color. Driven
+// by direct style mutation inside rAF (no re-renders, transform-only), hidden
+// when the page has nothing to scroll. Decorative — position is available to
+// assistive tech via the scrollbar, so it stays aria-hidden.
+export function ScrollProgress() {
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const el = ref.current;
+      if (!el) return;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      el.style.transform = `scaleX(${progress})`;
+      el.style.opacity = max > 0 ? "1" : "0";
+    };
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return <span ref={ref} className="scroll-progress" aria-hidden="true" />;
+}
 export function SiteHeader({
   wordmarkHref,
   wordmarkLabel,

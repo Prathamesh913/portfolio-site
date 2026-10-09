@@ -131,6 +131,15 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 }
 .skip-link:focus { transform: translateY(0); }
 
+/* Quiet top-edge scroll progress: 2px accent hairline. scaleX-only so it
+   stays on the compositor; sits below overlays (skip link, lightbox). */
+.scroll-progress {
+  position: fixed; z-index: 90; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--primary);
+  transform: scaleX(0); transform-origin: 0 50%;
+  opacity: 0; pointer-events: none;
+}
+
 .site-shell { overflow-x: clip; }
 .section-frame { width: min(calc(100% - var(--gutter) * 2), var(--content-max)); margin: 0 auto; }
 
