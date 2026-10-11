@@ -297,6 +297,15 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   text-transform: uppercase; letter-spacing: 0.1em;
 }
 .work, .currently, .github, .recently, .collections, .smaller, .experience, .skills, .toolkit, .outside { padding-bottom: 2.75rem; }
+/* Section counts — the same totals the cards already carry, shown as a quiet
+   instrument-panel suffix on the section label. */
+.section-count {
+  margin-left: 0.5rem;
+  font-size: 0.72rem; font-weight: 500;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
 
 /* WORK — the visual center */
 .work-list { border-bottom: 1px solid var(--border); }

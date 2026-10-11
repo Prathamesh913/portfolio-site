@@ -325,7 +325,7 @@ function App() {
         <GithubActivity />
 
         <section className={`work section-frame ${revealWork.revealClass}`} ref={revealWork.ref} id="work" aria-label="Work">
-          <h2>Work</h2>
+          <h2>Work <span className="section-count">{caseProjects.length} case studies · {toolProjects.length} tools</span></h2>
 
           <div className="collections-strip" role="list" tabIndex={0} aria-label={`Case studies: scrollable list, ${caseProjects.length} projects`}>
             {caseProjects.map((cs) => {
@@ -420,7 +420,7 @@ function App() {
 
         <section className={`collections section-frame ${revealArchive.revealClass}`} ref={revealArchive.ref} id="archive" aria-label="Archive">
           <div className="collections-head">
-            <h2>Archive</h2>
+            <h2>Archive <span className="section-count">{galleryItems.length} images · {blogPosts.length} posts</span></h2>
             <div className="collections-toggle" role="group" aria-label="Switch between gallery and blogs">
               <button type="button" aria-pressed={archiveView === "gallery"} onClick={() => toggleArchiveView("gallery")}>Gallery</button>
               <button type="button" aria-pressed={archiveView === "blogs"} onClick={() => toggleArchiveView("blogs")}>Blogs</button>

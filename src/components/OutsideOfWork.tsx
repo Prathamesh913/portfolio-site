@@ -1,7 +1,7 @@
 import { RecentlyWatched } from "./RecentlyWatched";
 import { Bookshelf } from "./objects/Bookshelf";
 import { PhotoLine } from "./PhotoLine";
-import { photos, youtubeChannel, youtubeVideos } from "../data/outsideOfWork";
+import { books, photos, youtubeChannel, youtubeVideos } from "../data/outsideOfWork";
 
 function PhotosBlock() {
   return (
@@ -76,7 +76,7 @@ function YouTubeBlock() {
 export function OutsideOfWork() {
   return (
     <section className="outside-of-work section-frame" aria-label="Outside of work">
-      <h2>Outside of Work</h2>
+      <h2>Outside of Work <span className="section-count">{books.length} books · {photos.length} photos · {youtubeVideos.length} videos</span></h2>
       <p className="oow-intro">
         A collection of things I enjoy outside of design — what I watch, photograph, read, and create.
       </p>
