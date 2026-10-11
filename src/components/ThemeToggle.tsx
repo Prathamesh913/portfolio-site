@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { applyTheme, getInitialTheme, getSystemTheme, getStoredTheme, type Theme } from "../lib/theme";
+import { applyTheme, getInitialTheme, getSystemTheme, getStoredTheme, STORAGE_KEY, type Theme } from "../lib/theme";
 
 function nextTheme(theme: Theme): Theme {
   return theme === "dark" ? "light" : "dark";
@@ -21,15 +21,22 @@ export function ThemeToggle() {
       if (!getStoredTheme()) setTheme(getSystemTheme());
     };
     const onStorage = (e: StorageEvent) => {
-      if (e.key === "portfolio-theme" && (e.newValue === "light" || e.newValue === "dark")) {
+      if (e.key === STORAGE_KEY && (e.newValue === "light" || e.newValue === "dark")) {
         setTheme(e.newValue);
       }
     };
+    // Keyboard shortcut (or another tab) applied the theme — sync to it.
+    const onThemeChanged = () => {
+      const applied = document.documentElement.dataset.theme;
+      setTheme(applied === "light" ? "light" : "dark");
+    };
     media.addEventListener("change", onMedia);
     window.addEventListener("storage", onStorage);
+    window.addEventListener("theme-changed", onThemeChanged);
     return () => {
       media.removeEventListener("change", onMedia);
       window.removeEventListener("storage", onStorage);
+      window.removeEventListener("theme-changed", onThemeChanged);
     };
   }, []);
 

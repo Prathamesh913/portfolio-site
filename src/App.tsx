@@ -12,6 +12,7 @@ import { SkillIcon } from "./components/SkillIcons";
 import { ScrollProgress, SiteHeader } from "./components/SiteHeader";
 import { useInViewOnce } from "./lib/useInViewOnce";
 import { useChipStamp } from "./lib/useChipStamp";
+import { useKeyboardShortcuts } from "./lib/useKeyboardShortcuts";
 
 const GITHUB_URL = "https://github.com/Prathamesh913";
 
@@ -45,6 +46,40 @@ function renderEmphasis(text: string): ReactNode[] {
 }
 
 type ArchiveView = "gallery" | "blogs";
+
+// Honest local time — the one fact about "now" this page can always show,
+// and the reason a message lands fastest at certain hours. Pure instrument:
+// no words, no status copy.
+function LocalClock() {
+  const [time, setTime] = useState(() =>
+    new Intl.DateTimeFormat("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "Asia/Kolkata",
+    }).format(new Date())
+  );
+  useEffect(() => {
+    const id = setInterval(
+      () =>
+        setTime(
+          new Intl.DateTimeFormat("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+            timeZone: "Asia/Kolkata",
+          }).format(new Date())
+        ),
+      15_000
+    );
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <span className="footer-clock" title="My local time (IST)">
+      IST {time}
+    </span>
+  );
+}
 
 function getArchiveView(): ArchiveView {
   return new URLSearchParams(window.location.search).get("view") === "blogs" ? "blogs" : "gallery";
@@ -209,6 +244,8 @@ function App() {
   // One-shot stamp entrances for the two chip grids.
   const skillsStamp = useChipStamp<HTMLDivElement>();
   const toolkitStamp = useChipStamp<HTMLDivElement>();
+  // Keyboard instruments: t theme, w/a/e/c sections.
+  useKeyboardShortcuts();
 
   const toggleArchiveView = (view: ArchiveView) => {
     setArchiveView(view);
@@ -473,6 +510,9 @@ function App() {
             <a href={GITHUB_URL} target="_blank" rel="noreferrer">github</a>
             {" · "}
             <span className="email-note">Email available on request</span>
+          </p>
+          <p className="footer-meta">
+            <LocalClock /> · <span className="footer-keys">t theme · w/a/e/c sections · ← → images</span>
           </p>
           <p className="footer-meta">© 2026 Prathamesh · <a href="#top">top ↑</a></p>
         </footer>

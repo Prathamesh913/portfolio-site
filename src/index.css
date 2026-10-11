@@ -695,6 +695,10 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .site-footer a { border-bottom: 1px solid var(--muted); transition: color 150ms ease, border-color 150ms ease; }
 .site-footer a:hover { color: var(--ink); border-color: var(--ink); }
 .email-note { color: var(--muted); }
+/* Footer status line — live clock + shortcut legend, set like an instrument
+   panel: mono, tabular, muted. No layout change, no voice. */
+.footer-clock { font-family: var(--font); font-variant-numeric: tabular-nums; }
+.footer-keys { font-family: var(--font); font-size: 0.72rem; }
 .footer-meta { margin-top: 0.75rem !important; font-size: 0.76rem !important; color: var(--muted) !important; }
 
 /* Case-study pages — same system, wider and image-led */
@@ -981,6 +985,37 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .deck__arm-button:focus-visible {
   border-color: var(--primary);
   outline: 2px solid var(--primary); outline-offset: 2px;
+}
+/* Transport readout — real embed position/duration. Sits on the deck's front
+   edge like a small hardware display: hairline progress + mono clock. Hidden
+   until the first report (`.deck.has-progress`), so the illustration never
+   fakes a number. The deck box is aspect-locked, so this overlays its bottom
+   strip — nothing else in the layout moves. */
+.deck__transport {
+  position: absolute; z-index: 4; left: 8%; right: 6%; bottom: 2.6%;
+  display: flex; align-items: center; gap: 0.5rem;
+  opacity: 0; pointer-events: none;
+  transition: opacity 240ms ease;
+}
+.deck.has-progress .deck__transport { opacity: 1; }
+.deck__progress-track {
+  flex: 1 1 auto; height: 2px; border-radius: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.deck__progress {
+  display: block; height: 100%; width: 100%;
+  background: var(--primary);
+  transform: scaleX(0); transform-origin: 0 50%;
+}
+.deck__time {
+  flex: 0 0 auto;
+  font-family: var(--font); font-size: 0.5625rem; font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em; color: var(--muted);
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .deck__transport { transition: none; }
 }
 
 /* Watching — traditional landscape 4:3 CRT. Cabinet → bezel → recessed screen

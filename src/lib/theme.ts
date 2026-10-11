@@ -1,6 +1,6 @@
 export type Theme = "light" | "dark";
 
-const STORAGE_KEY = "portfolio-theme";
+export const STORAGE_KEY = "portfolio-theme";
 
 export function getSystemTheme(): Theme {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return "dark";
@@ -43,4 +43,8 @@ export function applyTheme(theme: Theme): void {
   } catch {
     // Private mode — theme still applies for this session.
   }
+  // Announce the change so the toggle (and any other listener) can sync to
+  // the DOM, which stays the single source of truth. Keyboard shortcuts flip
+  // the theme through this same path.
+  window.dispatchEvent(new Event("theme-changed"));
 }
