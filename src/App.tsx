@@ -11,6 +11,7 @@ import { OutsideOfWork } from "./components/OutsideOfWork";
 import { SkillIcon } from "./components/SkillIcons";
 import { ScrollProgress, SiteHeader } from "./components/SiteHeader";
 import { useInViewOnce } from "./lib/useInViewOnce";
+import { useChipStamp } from "./lib/useChipStamp";
 
 const GITHUB_URL = "https://github.com/Prathamesh913";
 
@@ -149,6 +150,9 @@ function App() {
   const revealArchive = useReveal<HTMLElement>();
   const revealExperience = useReveal<HTMLElement>();
   const revealContact = useReveal<HTMLElement>();
+  // One-shot stamp entrances for the two chip grids.
+  const skillsStamp = useChipStamp<HTMLDivElement>();
+  const toolkitStamp = useChipStamp<HTMLDivElement>();
 
   const toggleArchiveView = (view: ArchiveView) => {
     setArchiveView(view);
@@ -389,7 +393,7 @@ function App() {
                 <h3 id={`skills-${group.label.toLowerCase()}`}>
                   {group.label}
                 </h3>
-                <div className="skill-chips">
+                <div className="skill-chips chip-stamp" ref={skillsStamp}>
                   {group.items.map((item) => (
                     <span className="skill-chip" key={item}>
                       <span className="skill-chip__icon" aria-hidden="true"><SkillIcon name={item} /></span>
@@ -404,7 +408,7 @@ function App() {
 
         <section className="toolkit section-frame" aria-label="Current toolkit">
           <h2>Toolkit</h2>
-          <div className="toolkit-chips">
+          <div className="toolkit-chips chip-stamp" ref={toolkitStamp}>
             {toolkit.split(" · ").map((tool) => (
               <span className="tool-chip" key={tool}>
                 <span className="tool-chip__icon" aria-hidden="true"><SkillIcon name={tool} /></span>
