@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 // Shared lightbox used by both the Archive gallery and case-study images.
 // Each caller supplies its own entry set and trigger buttons, so navigation
@@ -91,7 +92,11 @@ export function ImageLightbox({
 
   if (!entry) return null;
 
-  return (
+  // Portalled to document.body: callers render inside scroll containers and
+  // reveal-animated sections (whose `translate` traps `position: fixed` and
+  // sizes the overlay to the section instead of the viewport — the "cut
+  // modal"). The portal keeps one true fullscreen overlay for every caller.
+  return createPortal(
     <div
       className={`gallery-lightbox${shown ? " is-shown" : ""}`}
       role="dialog"
@@ -146,7 +151,8 @@ export function ImageLightbox({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
