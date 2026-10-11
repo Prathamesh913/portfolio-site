@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { blogPosts, blogSeries, buildProjects, experience, galleryItems, skills, toolkit } from "./data";
-import type { BlogPost, GalleryItem } from "./data";
+import type { BlogPost, ExperienceItem, GalleryItem } from "./data";
 import { allCaseStudies, CASE_ORDER } from "./data/caseStudies";
 import type { CaseStudy } from "./data/caseStudies";
 import { CaseStudyPage } from "./components/CaseStudyPage";
@@ -84,6 +84,60 @@ function galleryMeta(item: GalleryItem): string {
   return [item.type, item.year, item.device].filter((part): part is string => !!part).join(" · ");
 }
 
+// One experience row, collapsed by default. The whole head is the trigger;
+// details (highlights + supporting note) live in an animated panel. Single
+// open row at a time keeps the page compact — state lives in the parent.
+function ExperienceRow({
+  job,
+  index,
+  open,
+  onToggle,
+}: {
+  job: ExperienceItem;
+  index: number;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  const headId = `exp-head-${index}`;
+  const panelId = `exp-panel-${index}`;
+  return (
+    <article className={`exp-row${open ? " is-open" : ""}`}>
+      <span className="exp-index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+      <div className="exp-row__main">
+        <h3 className="exp-row__title" id={headId}>
+          <button
+            type="button"
+            className="exp-row__trigger"
+            aria-expanded={open}
+            aria-controls={panelId}
+            onClick={onToggle}
+          >
+            <span className="exp-row__role">
+              {job.role} <span className="exp-org">— {job.org}</span>
+            </span>
+            <span className="exp-period">{job.period}</span>
+            <span className="exp-row__chevron" aria-hidden="true">
+              <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 8l5 5 5-5" />
+              </svg>
+            </span>
+          </button>
+        </h3>
+        <div className="exp-row__panel" id={panelId} role="region" aria-labelledby={headId}>
+          <div className="exp-row__panel-inner">
+            <ul className="exp-highlights">
+              {job.highlights.map((highlight) => (
+                <li key={highlight}>{renderEmphasis(highlight)}</li>
+              ))}
+            </ul>
+            {job.supporting && <p className="exp-supporting">{renderEmphasis(job.supporting)}</p>}
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 function GallerySection() {
   const galleryEntries = galleryItems.map((item) => ({
     src: item.image.src,
@@ -145,6 +199,8 @@ function App() {
   const [activeSection, setActiveSection] = useState<string>("top");
   const [caseSlug, setCaseSlug] = useState<string | null>(getCaseSlug());
   const [archiveView, setArchiveView] = useState<ArchiveView>(getArchiveView);
+  // Experience accordion: collapsed by default, one row open at a time.
+  const [openExp, setOpenExp] = useState<number | null>(null);
 
   const revealWork = useReveal<HTMLElement>();
   const revealArchive = useReveal<HTMLElement>();
@@ -366,21 +422,13 @@ function App() {
           <h2>Experience</h2>
           <div className="exp-list">
             {experience.map((job, i) => (
-              <article className="exp-row" key={`${job.org}-${job.period}`}>
-                <span className="exp-index" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
-                <div className="exp-row__main">
-                  <div className="exp-row__head">
-                    <h3>{job.role} <span className="exp-org">— {job.org}</span></h3>
-                    <span className="exp-period">{job.period}</span>
-                  </div>
-                  <ul className="exp-highlights">
-                    {job.highlights.map((highlight) => (
-                      <li key={highlight}>{renderEmphasis(highlight)}</li>
-                    ))}
-                  </ul>
-                  {job.supporting && <p className="exp-supporting">{renderEmphasis(job.supporting)}</p>}
-                </div>
-              </article>
+              <ExperienceRow
+                key={`${job.org}-${job.period}`}
+                job={job}
+                index={i}
+                open={openExp === i}
+                onToggle={() => setOpenExp(openExp === i ? null : i)}
+              />
             ))}
           </div>
         </section>

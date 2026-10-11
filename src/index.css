@@ -536,14 +536,48 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 /* Supporting sections */
 .experience-anchor { scroll-margin-top: 1rem; }
 .exp-list { border-bottom: 1px solid var(--border); }
-.exp-row { display: grid; grid-template-columns: 2.5rem 1fr; gap: 0 1.1rem; padding: 2.5rem 0; border-top: 1px solid var(--border); }
+.exp-row { display: grid; grid-template-columns: 2.5rem 1fr; gap: 0 1.1rem; padding: 1.85rem 0; border-top: 1px solid var(--border); }
 .exp-row:first-child { border-top: 0; padding-top: 1.5rem; }
 .exp-index { font-size: 0.85rem; font-weight: 700; color: var(--primary); padding-top: 0.1rem; }
-.exp-row__head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-.exp-row h3 { margin: 0; font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em; transition: color 150ms ease; }
-.exp-row:hover h3 { color: var(--primary); }
+/* Accordion trigger — the whole head is the button. Role + org stay metadata;
+   the details live in the panel below. */
+.exp-row__title { margin: 0; font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em; }
+.exp-row__trigger {
+  display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap;
+  width: 100%; padding: 0.15rem 0.35rem; margin: 0 -0.35rem;
+  appearance: none; cursor: pointer; text-align: left;
+  border: 1px solid transparent; border-radius: var(--radius);
+  background: transparent; color: inherit; font: inherit;
+  transition: color 150ms ease, background 150ms ease;
+}
+.exp-row__trigger:hover { background: rgba(255, 255, 255, 0.022); }
+.exp-row__trigger:hover .exp-row__role { color: var(--primary); }
+.exp-row__trigger:focus-visible { border-color: var(--primary); }
+.exp-row__role { transition: color 150ms ease; }
 .exp-org { font-weight: 500; color: var(--muted); }
-.exp-period { font-size: 0.72rem; color: var(--info); white-space: nowrap; }
+.exp-period { font-size: 0.72rem; color: var(--info); white-space: nowrap; margin-left: auto; }
+.exp-row__chevron {
+  display: inline-grid; place-items: center; flex: 0 0 auto;
+  width: 1.35rem; height: 1.35rem; border-radius: 6px;
+  color: var(--muted);
+  transition: rotate 200ms ease, color 150ms ease;
+}
+.exp-row__trigger:hover .exp-row__chevron { color: var(--ink-soft); }
+.exp-row.is-open .exp-row__chevron { rotate: 180deg; color: var(--ink-soft); }
+/* Collapse: grid-template-rows 0fr→1fr is the animatable-height pattern.
+   Delayed visibility hides the closed panel from screen readers and the tab
+   order only after it has finished collapsing. */
+.exp-row__panel {
+  display: grid; grid-template-rows: 0fr;
+  visibility: hidden;
+  transition: grid-template-rows 240ms cubic-bezier(0.23, 1, 0.32, 1), visibility 0s linear 240ms;
+}
+.exp-row.is-open .exp-row__panel {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition: grid-template-rows 240ms cubic-bezier(0.23, 1, 0.32, 1), visibility 0s;
+}
+.exp-row__panel-inner { overflow: hidden; min-height: 0; }
 /* The highlights are the section's body copy: they carry the readable measure
    and the breathing room, while everything around them stays metadata. */
 .exp-highlights { margin: 1.35rem 0 0; padding-left: 1.15rem; max-width: 40rem; }
@@ -757,8 +791,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   .site-header__group { gap: 0.6rem; }
   .lamp-toggle { width: 2.25rem; height: 2.25rem; }
   .skills-grid { grid-template-columns: 1fr; }
-  .work-row__head, .smaller-row__head, .exp-row__head { gap: 0.35rem; }
-  .exp-row { grid-template-columns: 1.75rem 1fr; gap: 0 0.75rem; padding: 2.25rem 0; }
+  .work-row__head, .smaller-row__head, .exp-row__trigger { gap: 0.35rem; }
+  .exp-row { grid-template-columns: 1.75rem 1fr; gap: 0 0.75rem; padding: 1.6rem 0; }
   .exp-highlights { margin-top: 1.2rem; }
   .exp-highlights li { font-size: 1rem; }
   .exp-highlights li + li { margin-top: 1rem; }
