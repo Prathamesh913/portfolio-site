@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { blogPosts, blogSeries, buildProjects, experience, galleryItems, skills, toolkit } from "./data";
+import { blogPosts, blogSeries, buildProjects, experience, galleryItems, skills, socialLinks, toolkit } from "./data";
 import type { BlogPost, ExperienceItem, GalleryItem } from "./data";
 import { allCaseStudies, CASE_ORDER } from "./data/caseStudies";
 import type { CaseStudy } from "./data/caseStudies";
@@ -9,7 +9,7 @@ import { GithubActivity } from "./components/GithubActivity";
 import { HireForm } from "./components/HireForm";
 import { ImageLightbox, useImageLightbox } from "./components/ImageLightbox";
 import { OutsideOfWork } from "./components/OutsideOfWork";
-import { SkillIcon } from "./components/SkillIcons";
+import { SkillIcon, SocialIcon } from "./components/SkillIcons";
 import { ScrollProgress, SiteHeader } from "./components/SiteHeader";
 import { useInViewOnce } from "./lib/useInViewOnce";
 import { useChipStamp } from "./lib/useChipStamp";
@@ -232,6 +232,11 @@ function GallerySection() {
 function App() {
   const caseProjects = CASE_ORDER.map((slug) => caseStudies[slug]).filter((c): c is CaseStudy => !!c);
   const toolProjects = buildProjects;
+  // Contact row: GitHub first, then whatever social/resume links have URLs.
+  const contactLinks = [
+    { label: "Github", href: GITHUB_URL, note: "GitHub profile" },
+    ...socialLinks.filter((link) => link.href),
+  ];
   const [activeSection, setActiveSection] = useState<string>("top");
   const [caseSlug, setCaseSlug] = useState<string | null>(getCaseSlug());
   const [archiveView, setArchiveView] = useState<ArchiveView>(getArchiveView);
@@ -507,11 +512,20 @@ function App() {
         <OutsideOfWork />
 
         <footer className={`site-footer section-frame ${revealContact.revealClass}`} ref={revealContact.ref} id="contact">
-          <p>
-            <a href={GITHUB_URL} target="_blank" rel="noreferrer">github</a>
-          </p>
-
           <HireForm />
+
+          <div className="contact-links">
+            <h3 className="contact-links__title">reach out to me at</h3>
+            <div className="skill-chips">
+              {contactLinks.map((link) => (
+                <a className="skill-chip" href={link.href} target="_blank" rel="noreferrer" key={link.label}>
+                  <span className="skill-chip__icon" aria-hidden="true"><SocialIcon name={link.label} /></span>
+                  {link.label}
+                  <span className="sr-only">: {link.note} (opens in a new tab)</span>
+                </a>
+              ))}
+            </div>
+          </div>
 
           <p className="footer-meta">
             <LocalClock /> · <span className="footer-keys">t theme · w/a/e/c sections · ← → images</span>

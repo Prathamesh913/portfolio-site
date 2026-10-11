@@ -589,12 +589,12 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .exp-row__panel-inner { overflow: hidden; min-height: 0; }
 /* The highlights are the section's body copy: they carry the readable measure
    and the breathing room, while everything around them stays metadata. */
-.exp-highlights { margin: 1.35rem 0 0; padding-left: 1.15rem; max-width: 40rem; }
+.exp-highlights { margin: 1.35rem 0 0; padding-left: 1.15rem; max-width: 51rem; }
 .exp-highlights li { font-size: 1.0625rem; color: var(--ink-soft); line-height: 1.6; }
 .exp-highlights li + li { margin-top: 1.1rem; }
 .exp-highlights li::marker { color: var(--muted); }
 .exp-metric { font-weight: 700; color: var(--ink); }
-.exp-supporting { margin: 1.5rem 0 0; font-size: 0.875rem; color: var(--muted); line-height: 1.6; max-width: 40rem; }
+.exp-supporting { margin: 1.5rem 0 0; font-size: 0.875rem; color: var(--muted); line-height: 1.6; max-width: 51rem; }
 
 .skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem 1.5rem; padding-top: 1.1rem; max-width: 60rem; }
 .skills-group { min-width: 0; }
@@ -656,6 +656,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .skill-chip__icon:has(.skill-icon--linux) { --brand-wash: rgba(255, 208, 66, 0.16); }
 .skill-chip__icon:has(.skill-icon--hyprland) { --brand-wash: rgba(150, 120, 255, 0.16); }
 .skill-chip__icon:has(.skill-icon--zed) { --brand-wash: rgba(148, 163, 184, 0.16); }
+.skill-chip__icon:has(.skill-icon--x) { --brand-wash: rgba(160, 160, 160, 0.18); }
+.skill-chip__icon:has(.skill-icon--linkedin) { --brand-wash: rgba(10, 102, 194, 0.2); }
 
 /* Stamp entrance — one shot, when the grid first scrolls into view. Each chip
    lands with weight (a slight rotation settling to rest), staggered by the
@@ -700,19 +702,28 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 
 /* Footer */
 .site-footer { padding: 2rem 0 3rem; border-top: 1px solid var(--border); font-size: 0.84rem; color: var(--ink-soft); }
-.site-footer p { margin: 0; }
-.site-footer a { border-bottom: 1px solid var(--muted); transition: color 150ms ease, border-color 150ms ease; }
+.site-footer p { margin-bottom: 16px; }
+.site-footer a { transition: color 150ms ease, border-color 150ms ease; }
 .site-footer a:hover { color: var(--ink); border-color: var(--ink); }
 .email-note { color: var(--muted); }
+/* Contact links below the form — the skill-chip treatment, so the social
+   badges behave exactly like the skills badges (brand color on hover). */
+.contact-links { margin-top: 2rem; }
+.contact-links__title {
+  margin: 0;
+  font-family: var(--font); font-size: 0.72rem; font-weight: 700;
+  color: var(--muted); letter-spacing: 0.08em;
+}
+.contact-links .skill-chips { margin-top: 0.75rem; margin-bottom: 2rem }
+.contact-links .skill-chip { text-decoration: none; }
 /* Hire-me form — the contact section as a terminal-style composer: a command
    prompt, header rows split by the same hairlines as the experience list, a
    quiet bordered send. Mono type and dividers only — no boxes, no shadows. */
 .hire { padding-top: 1.5rem; }
-.hire__prompt {
-  margin: 0 0 0.85rem;
-  font-family: var(--font); font-size: 0.8rem; color: var(--muted);
+.hire__intro {
+  margin: 0 0 1.9rem; font-size: 0.85rem; color: var(--ink-soft);
+  max-width: 38rem; line-height: 1.6;
 }
-.hire__dollar { color: var(--primary); font-weight: 700; }
 .hire__form { border-top: 1px solid var(--border); }
 .hire__row {
   display: grid; grid-template-columns: 5rem 1fr; gap: 0 0.9rem;
@@ -729,7 +740,9 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   width: 100%; min-width: 0;
   font-family: var(--font); font-size: 0.82rem; color: var(--ink);
   background: transparent; border: 0; border-radius: 0;
-  padding: 0.7rem 0;
+  /* Horizontal padding keeps text clear of the focus ring, which is drawn
+     inside the field (outline-offset: -2px). */
+  padding: 0.7rem 0.7rem;
 }
 .hire__value { display: block; color: var(--ink-soft); }
 .hire__input::placeholder,

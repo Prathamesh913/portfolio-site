@@ -17,7 +17,7 @@ export type {
   CurrentlySnapshot,
   CurrentlyWatching,
 } from "./currently";
-export { experience, skills, toolkit, outside } from "./profile";
+export { experience, skills, toolkit, outside, socialLinks } from "./profile";
 export type { ExperienceItem, SkillsGroup } from "./profile";
 export type {
   BlogPost,

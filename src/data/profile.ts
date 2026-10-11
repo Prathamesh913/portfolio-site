@@ -80,3 +80,11 @@ export const outside = {
   heading: "Outside the screen",
   body: "I spend time exploring interface design and typography, experimenting with Linux desktop workflows, and collecting ideas from film and visual culture.",
 };
+
+// Contact/social row — every entry renders once it has an href, so links can
+// be added one at a time. GitHub lives in App.tsx (GITHUB_URL).
+export const socialLinks: { label: string; href: string; note: string }[] = [
+  { label: "Twitter", href: "https://x.com/Prathamesh913", note: "X profile" },
+  { label: "Linkedin", href: "https://www.linkedin.com/in/prathamesh-jadhav-45b20b191/", note: "LinkedIn profile" },
+  { label: "Resume", href: "https://drive.google.com/file/d/1MmFiw5d_c6Xrzg6yjxWO_lvn6DylrGhU/view?usp=sharing", note: "Résumé (PDF)" },
+];

@@ -77,9 +77,7 @@ export function HireForm() {
 
   return (
     <section className="hire" aria-label="Contact">
-      <p className="hire__prompt" aria-hidden="true">
-        <span className="hire__dollar">$</span> cat hire.me
-      </p>
+      <p className="hire__intro">Email me — what's on your mind?</p>
       <form className="hire__form" onSubmit={onSubmit} noValidate={false}>
         <div className="hire__row">
           <span className="hire__label" id="hire-to">to:</span>
