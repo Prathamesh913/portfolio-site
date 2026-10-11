@@ -704,6 +704,63 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .site-footer a { border-bottom: 1px solid var(--muted); transition: color 150ms ease, border-color 150ms ease; }
 .site-footer a:hover { color: var(--ink); border-color: var(--ink); }
 .email-note { color: var(--muted); }
+/* Hire-me form — the contact section as a terminal-style composer: a command
+   prompt, header rows split by the same hairlines as the experience list, a
+   quiet bordered send. Mono type and dividers only — no boxes, no shadows. */
+.hire { padding-top: 1.5rem; }
+.hire__prompt {
+  margin: 0 0 0.85rem;
+  font-family: var(--font); font-size: 0.8rem; color: var(--muted);
+}
+.hire__dollar { color: var(--primary); font-weight: 700; }
+.hire__form { border-top: 1px solid var(--border); }
+.hire__row {
+  display: grid; grid-template-columns: 5rem 1fr; gap: 0 0.9rem;
+  align-items: baseline;
+  border-bottom: 1px solid var(--border);
+}
+.hire__label {
+  font-family: var(--font); font-size: 0.78rem; color: var(--muted);
+  padding: 0.7rem 0; white-space: nowrap;
+}
+.hire__value,
+.hire__input,
+.hire__textarea {
+  width: 100%; min-width: 0;
+  font-family: var(--font); font-size: 0.82rem; color: var(--ink);
+  background: transparent; border: 0; border-radius: 0;
+  padding: 0.7rem 0;
+}
+.hire__value { display: block; color: var(--ink-soft); }
+.hire__input::placeholder,
+.hire__textarea::placeholder { color: var(--muted); opacity: 1; }
+.hire__input:focus-visible,
+.hire__textarea:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.hire__body { border-bottom: 1px solid var(--border); }
+.hire__textarea { display: block; resize: vertical; min-height: 5.5rem; line-height: 1.6; }
+.hire__foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; margin-top: 0.9rem;
+}
+.hire__status {
+  margin: 0; font-family: var(--font); font-size: 0.72rem; color: var(--muted);
+  min-height: 1em;
+}
+.hire__send {
+  font-family: var(--font); font-size: 0.78rem; font-weight: 700;
+  padding: 0.45rem 1.1rem;
+  color: var(--ink-soft); background: transparent;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease, transform 160ms ease-out;
+}
+.hire__send:hover { color: var(--primary); border-color: var(--primary); }
+.hire__send:active { transform: scale(0.97); }
+.hire__send:disabled { opacity: 0.5; cursor: default; transform: none; }
+.hire__trap { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+@media (max-width: 700px) {
+  .hire__row { grid-template-columns: 4.25rem 1fr; gap: 0 0.6rem; }
+}
 /* Footer status line — live clock + shortcut legend, set like an instrument
    panel: mono, tabular, muted. No layout change, no voice. */
 .footer-clock { font-family: var(--font); font-variant-numeric: tabular-nums; }

@@ -6,6 +6,7 @@ import type { CaseStudy } from "./data/caseStudies";
 import { CaseStudyPage } from "./components/CaseStudyPage";
 import { CurrentlySection } from "./components/CurrentlySection";
 import { GithubActivity } from "./components/GithubActivity";
+import { HireForm } from "./components/HireForm";
 import { ImageLightbox, useImageLightbox } from "./components/ImageLightbox";
 import { OutsideOfWork } from "./components/OutsideOfWork";
 import { SkillIcon } from "./components/SkillIcons";
@@ -508,9 +509,10 @@ function App() {
         <footer className={`site-footer section-frame ${revealContact.revealClass}`} ref={revealContact.ref} id="contact">
           <p>
             <a href={GITHUB_URL} target="_blank" rel="noreferrer">github</a>
-            {" · "}
-            <span className="email-note">Email available on request</span>
           </p>
+
+          <HireForm />
+
           <p className="footer-meta">
             <LocalClock /> · <span className="footer-keys">t theme · w/a/e/c sections · ← → images</span>
           </p>
