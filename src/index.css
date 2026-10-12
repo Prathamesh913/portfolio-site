@@ -1397,7 +1397,21 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 }
 
 @media (max-width: 700px) {
-  .currently-grid { grid-template-columns: 1fr; }
+  /* The three Currently cards become a snap strip on mobile: one card reads
+     at a time instead of three tall cards stacked into a long scroll. Same
+     strip idiom as work/archive/recently — flex, x snap, edge padding —
+     with overscroll contained so swiping cards never drags the page. The
+     80vw basis leaves the next card peeking at the edge, which is what
+     communicates there's more to swipe. */
+  .currently-grid {
+    display: flex; gap: 1rem;
+    margin-top: 1.1rem;
+    padding: 0.25rem 0.25rem 0.9rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
+  }
+  .currently-card { flex: 0 0 min(19rem, 80vw); scroll-snap-align: start; }
 }
 
 /* RECENTLY WATCHED — compact Trakt media strip */
