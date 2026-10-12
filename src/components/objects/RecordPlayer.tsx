@@ -38,12 +38,6 @@ const NOTE_FADE_MS = 620; // 500ms glyph fade + margin
 // in milliseconds and confirm via a matching report, which clears early.
 const INTENT_GRACE_MS = 4000;
 
-/** ms → m:ss for the tiny transport readout. */
-function formatClock(ms: number): string {
-  const total = Math.max(0, Math.round(ms / 1000));
-  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
-}
-
 type NotesPhase = "off" | "arming" | "playing" | "fading";
 
 export function RecordPlayer({
@@ -101,12 +95,6 @@ export function RecordPlayer({
   // otherwise one tap makes the needle drop, lift, and drop again.
   const intentRef = useRef<{ willPlay: boolean; at: number } | null>(null);
   const [realActive, setRealActive] = useState(false);
-  // Transport readout: real position/duration from the embed, written to the
-  // DOM directly (one state flag only, to fade the readout in once).
-  const progressRef = useRef<HTMLSpanElement | null>(null);
-  const timeRef = useRef<HTMLSpanElement | null>(null);
-  const hasProgressRef = useRef(false);
-  const [hasProgress, setHasProgress] = useState(false);
   // Guards the async toggle: extra taps while loadUri/play is in flight are
   // ignored so the arm can't flip-flop mid-transition (mobile double-tap).
   const togglingRef = useRef(false);
@@ -135,11 +123,6 @@ export function RecordPlayer({
       previousTrack.current = trackKey;
       userToggled.current = false;
       intentRef.current = null;
-      // A new track is a new transport: clear the readout until it reports.
-      hasProgressRef.current = false;
-      setHasProgress(false);
-      if (progressRef.current) progressRef.current.style.transform = "scaleX(0)";
-      if (timeRef.current) timeRef.current.textContent = "";
       setVisualPlaying(playing);
       setParked(!playing);
       // Follow the new track in the embed when it was playing.
@@ -245,22 +228,6 @@ export function RecordPlayer({
             const state = e?.data;
             console.warn("[turntable] playback_update", state && { paused: state.isPaused, buffering: state.isBuffering });
             if (!state || state.isBuffering) return;
-            // Live position/duration, written straight to the DOM so a ~1/s
-            // event never re-renders the component. Only while actually
-            // playing — a paused or warming embed must not show progress.
-            if (!state.isPaused) {
-              const pos = state.position;
-              const dur = state.duration;
-              if (typeof pos === "number" && typeof dur === "number" && dur > 0) {
-                if (!hasProgressRef.current) {
-                  hasProgressRef.current = true;
-                  setHasProgress(true);
-                }
-                const pct = Math.min(1, Math.max(0, pos / dur));
-                if (progressRef.current) progressRef.current.style.transform = `scaleX(${pct})`;
-                if (timeRef.current) timeRef.current.textContent = `${formatClock(pos)} / ${formatClock(dur)}`;
-              }
-            }
             // Ignore pre-click sync: background warm-up must not disturb the
             // staged mid-performance default.
             if (!userToggled.current && !realPlayingRef.current) return;
@@ -366,7 +333,7 @@ export function RecordPlayer({
   }, [trackUrl]);
 
   return (
-    <span ref={deckRef} className={`deck${visualPlaying ? " is-playing" : ""}${parked ? " is-parked" : ""}${hasProgress ? " has-progress" : ""}`}>
+    <span ref={deckRef} className={`deck${visualPlaying ? " is-playing" : ""}${parked ? " is-parked" : ""}`}>
       <svg className="deck__svg" viewBox="0 0 160 120" preserveAspectRatio="none" aria-hidden="true" focusable="false">
         <defs>
           <clipPath id={labelClip}>
@@ -445,16 +412,6 @@ export function RecordPlayer({
         <circle className="deck__pivot" cx={PIVOT.x} cy={PIVOT.y} r="4.2" />
         <circle className="deck__pivot-dot" cx={PIVOT.x} cy={PIVOT.y} r="1.5" />
       </svg>
-
-      {/* Transport readout — only appears once the embed reports real
-          position/duration, and it lives on the deck's own front edge so it
-          reads like hardware, not an overlay. */}
-      <span className="deck__transport" aria-hidden="true">
-        <span className="deck__progress-track">
-          <span className="deck__progress" ref={progressRef} />
-        </span>
-        <span className="deck__time" ref={timeRef} />
-      </span>
 
       {notesPhase !== "off" && (
         <span className={`deck__notes is-${notesPhase}`} aria-hidden="true">
