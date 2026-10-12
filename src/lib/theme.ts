@@ -43,8 +43,9 @@ export function applyTheme(theme: Theme): void {
   } catch {
     // Private mode — theme still applies for this session.
   }
-  // Announce the change so the toggle (and any other listener) can sync to
-  // the DOM, which stays the single source of truth. Keyboard shortcuts flip
-  // the theme through this same path.
-  window.dispatchEvent(new Event("theme-changed"));
+  // Announce the change WITH the applied theme. Reading it back from the DOM
+  // here would be a race: with View Transitions, `swap` runs asynchronously
+  // after the browser captures the old state, so dataset.theme is still the
+  // previous value at this point — which made the toggle revert its own click.
+  window.dispatchEvent(new CustomEvent<Theme>("theme-changed", { detail: theme }));
 }

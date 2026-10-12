@@ -25,10 +25,18 @@ export function ThemeToggle() {
         setTheme(e.newValue);
       }
     };
-    // Keyboard shortcut (or another tab) applied the theme — sync to it.
-    const onThemeChanged = () => {
-      const applied = document.documentElement.dataset.theme;
-      setTheme(applied === "light" ? "light" : "dark");
+    // Keyboard shortcut (or another tab) applied the theme — sync to the
+    // theme the event carries, not a DOM read (which would race the deferred
+    // View Transition swap and revert the toggle's own click).
+    const onThemeChanged = (event: Event) => {
+      const applied = (event as CustomEvent<Theme>).detail;
+      const resolved =
+        applied === "light" || applied === "dark"
+          ? applied
+          : document.documentElement.dataset.theme === "light"
+            ? "light"
+            : "dark";
+      setTheme(resolved);
     };
     media.addEventListener("change", onMedia);
     window.addEventListener("storage", onStorage);
