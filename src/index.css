@@ -176,11 +176,12 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 
 /* Shortcut hint — hovering (or keyboard-focusing) a nav link or the theme
    lamp surfaces the key that jumps there, so the shortcuts teach themselves.
-   Hover-gated to fine pointers (touch has no hover and gets sticky ones),
-   CSS-only via attr(), announced to AT through aria-keyshortcuts. */
-@media (hover: hover) and (pointer: fine) {
+   CSS-only via attr(); announced to AT through aria-keyshortcuts. Gated on
+   hover capability alone — touch browsers report hover:none (and would show
+   sticky hints), while a mouse/trackpad reports hover:hover even on hybrids
+   where pointer:fine can lag, so that extra condition only cost coverage. */
+@media (hover: hover) {
   .site-nav a[data-shortcut]::after,
-  .nav-menu-panel a[data-shortcut]::after,
   .lamp-toggle[data-shortcut]::after {
     content: "press " attr(data-shortcut);
     position: absolute; z-index: 60;
@@ -197,8 +198,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   }
   .site-nav a[data-shortcut]:hover::after,
   .site-nav a[data-shortcut]:focus-visible::after,
-  .nav-menu-panel a[data-shortcut]:hover::after,
-  .nav-menu-panel a[data-shortcut]:focus-visible::after,
   .lamp-toggle[data-shortcut]:hover::after,
   .lamp-toggle[data-shortcut]:focus-visible::after { opacity: 1; translate: -50% 0; }
   /* The lamp sits at the right edge — keep its hint inside the viewport. */
@@ -228,6 +227,17 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   border-bottom: 0; transition: color 150ms ease, background 150ms ease;
 }
 .nav-menu-panel a:hover { color: var(--ink); }
+/* Touch has no hover to hang a hint on, so the mobile menu rides the key
+   along with the link itself — visible, no gesture needed. */
+.nav-menu-panel a[data-shortcut]::after {
+  content: attr(data-shortcut);
+  margin-left: auto;
+  padding: 0.05rem 0.32rem;
+  font-family: var(--font); font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border); border-radius: 4px;
+}
 .nav-menu-panel a.is-active {
   color: var(--ink);
   text-decoration: underline;
