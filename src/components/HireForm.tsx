@@ -9,7 +9,8 @@
 // destination address is intentionally visible in the `to:` row — a form
 // that hides where it sends is a form that looks broken.
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { CmdlineToast, type ToastMessage } from "./CmdlineToast";
 
 const CONTACT_EMAIL = "prathameshjadhav913@gmail.com";
 const ENDPOINTS = ["/api/contact", "/.netlify/functions/contact"];
@@ -20,13 +21,24 @@ type SendState = "idle" | "sending" | "sent" | "error" | "unconfigured";
 const STATUS_TEXT: Record<SendState, string> = {
   idle: "",
   sending: "sending…",
-  sent: "sent.",
+  sent: "",
   error: "couldn't send — the address above still works.",
   unconfigured: "form isn't connected — the address above still works.",
 };
 
 export function HireForm() {
   const [state, setState] = useState<SendState>("idle");
+  // The success receipt replaces the composer entirely; focus moves to it so
+  // the outcome is announced and the keyboard lands somewhere sensible. On
+  // any failure the composer stays exactly as typed — a draft must never be
+  // lost to a network error.
+  const [receipt, setReceipt] = useState<{ subject: string } | null>(null);
+  const [toast, setToast] = useState<ToastMessage>(null);
+  const receiptRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    if (receipt) receiptRef.current?.focus();
+  }, [receipt]);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -56,8 +68,13 @@ export function HireForm() {
           signal: controller.signal,
         });
         if (res.ok) {
-          setState("sent");
+          // Receipt replaces the composer; the strip flashes the same event
+          // for anyone whose eyes have left the form.
+          const subject = String(data.get("subject") ?? "").trim();
           form.reset();
+          setState("sent");
+          setReceipt({ subject });
+          setToast({ text: "message sent", tone: "info" });
           return;
         }
         // 503 = this endpoint exists but has no mail key; the mirror would
@@ -73,12 +90,38 @@ export function HireForm() {
       }
     }
     setState(unconfigured ? "unconfigured" : "error");
+    setToast({
+      text: unconfigured ? "form isn't connected — email above works" : "couldn't send — try again",
+      tone: "error",
+    });
   };
 
   return (
     <section className="hire" aria-label="Contact">
-      <p className="hire__intro">Email me — what's on your mind?</p>
-      <form className="hire__form" onSubmit={onSubmit} noValidate={false}>
+      {receipt ? (
+        /* Success: the composer is replaced by its own delivery receipt —
+           the mechanism reports its outcome, no overlay needed. */
+        <div className="hire__receipt" role="status" aria-live="polite">
+          <p className="hire__receipt-line" ref={receiptRef} tabIndex={-1}>
+            <span className="hire__receipt-prompt" aria-hidden="true">&gt;</span>{" "}
+            message delivered to {CONTACT_EMAIL}
+          </p>
+          {receipt.subject && <p className="hire__receipt-subject">“{receipt.subject}”</p>}
+          <button
+            className="hire__again"
+            type="button"
+            onClick={() => {
+              setReceipt(null);
+              setState("idle");
+            }}
+          >
+            write another
+          </button>
+        </div>
+      ) : (
+        <>
+          <p className="hire__intro">Email me — what's on your mind?</p>
+          <form className="hire__form" onSubmit={onSubmit}>
         <div className="hire__row">
           <span className="hire__label" id="hire-to">to:</span>
           <span className="hire__value" aria-labelledby="hire-to">{CONTACT_EMAIL}</span>
@@ -126,7 +169,11 @@ export function HireForm() {
           </button>
         </div>
         <input className="hire__trap" type="text" name="trap" tabIndex={-1} autoComplete="off" aria-hidden="true" />
-      </form>
+        </form>
+      </>
+      )}
+
+      <CmdlineToast message={toast} />
     </section>
   );
 }

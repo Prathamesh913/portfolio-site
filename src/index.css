@@ -817,6 +817,48 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .hire__send:active { transform: scale(0.97); }
 .hire__send:disabled { opacity: 0.5; cursor: default; transform: none; }
 .hire__trap { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+/* Success receipt — the composer dissolves and the delivery line takes its
+   place. Same mono/hairline language as the form itself; nothing overlays. */
+.hire__receipt { padding: 0.4rem 0 0.2rem; }
+.hire__receipt-line {
+  margin: 0; font-family: var(--font); font-size: 0.82rem; color: var(--ink-soft);
+  line-height: 1.6;
+}
+.hire__receipt-line:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+.hire__receipt-prompt { color: var(--primary); font-weight: 700; }
+.hire__receipt-subject {
+  margin: 0.3rem 0 0; font-family: var(--font); font-size: 0.78rem; color: var(--muted);
+  max-width: 38rem;
+}
+.hire__again {
+  appearance: none; cursor: pointer; margin-top: 0.9rem; padding: 0;
+  background: transparent; border: 0; border-bottom: 1px solid var(--muted);
+  font-family: var(--font); font-size: 0.76rem; color: var(--ink-soft);
+  transition: color 150ms ease, border-color 150ms ease;
+}
+.hire__again:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+/* Cmdline strip — the site's only toast: a bottom-edge status line in the
+   footer's instrument idiom, never a floating card. Slides up with the
+   house curve, auto-dismisses (or click it), announced politely. */
+.cmdline {
+  position: fixed; z-index: 150; left: 50%; bottom: 1.25rem;
+  translate: -50% calc(100% + 1.75rem);
+  display: flex; align-items: baseline; gap: 0.45rem;
+  max-width: calc(100vw - 2rem); padding: 0.5rem 0.85rem;
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  font-family: var(--font); font-size: 0.72rem; color: var(--ink-soft);
+  cursor: pointer;
+  opacity: 0;
+  transition: translate 200ms cubic-bezier(0.23, 1, 0.32, 1), opacity 160ms ease;
+}
+.cmdline.is-shown { translate: -50% 0; opacity: 1; }
+.cmdline__prompt { color: var(--primary); font-weight: 700; }
+.cmdline.is-error { border-color: var(--primary); }
+@media (prefers-reduced-motion: reduce) {
+  .cmdline { transition: none; }
+}
 @media (max-width: 700px) {
   .hire__row { grid-template-columns: 4.25rem 1fr; gap: 0 0.6rem; }
 }
