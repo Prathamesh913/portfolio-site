@@ -313,11 +313,11 @@ function App() {
         wordmarkText="prathamesh"
         navLabel="Primary navigation"
       >
-        <a href="#work" className={activeSection === "work" ? "is-active" : ""}>work</a>
-        <a href="#archive" className={activeSection === "archive" ? "is-active" : ""}>archive</a>
-        <a href="#experience" className={activeSection === "experience" ? "is-active" : ""}>experience</a>
+        <a href="#work" className={activeSection === "work" ? "is-active" : ""} data-shortcut="w" aria-keyshortcuts="w">work</a>
+        <a href="#archive" className={activeSection === "archive" ? "is-active" : ""} data-shortcut="a" aria-keyshortcuts="a">archive</a>
+        <a href="#experience" className={activeSection === "experience" ? "is-active" : ""} data-shortcut="e" aria-keyshortcuts="e">experience</a>
         <a href={GITHUB_URL} target="_blank" rel="noreferrer">github</a>
-        <a href="#contact" className={activeSection === "contact" ? "is-active" : ""}>contact</a>
+        <a href="#contact" className={activeSection === "contact" ? "is-active" : ""} data-shortcut="c" aria-keyshortcuts="c">contact</a>
       </SiteHeader>
 
       <main id="main-content">

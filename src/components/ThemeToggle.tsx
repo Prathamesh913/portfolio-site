@@ -53,6 +53,8 @@ export function ThemeToggle() {
       type="button"
       className={`lamp-toggle${isOn ? " is-on" : ""}`}
       aria-pressed={isOn}
+      aria-keyshortcuts="t"
+      data-shortcut="t"
       aria-label={isOn ? "Switch to light mode" : "Switch to dark mode"}
       title={isOn ? "Switch to light mode" : "Switch to dark mode"}
       onClick={() => setTheme(nextTheme)}
