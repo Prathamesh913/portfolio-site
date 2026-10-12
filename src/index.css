@@ -387,6 +387,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   display: flex; gap: 1.25rem;
   padding: 1rem 0.25rem 0.9rem;
   overflow-x: auto; scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
 }
 .collections-strip:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; border-radius: var(--radius); }
 .coll-card {
@@ -477,6 +478,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   display: flex; gap: 1.25rem;
   padding: 0.25rem 0.25rem 0.9rem;
   overflow-x: auto; scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
   margin-top: 1rem;
 }
 .gallery-strip:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; border-radius: var(--radius); }
@@ -1867,26 +1869,16 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .gh-swatch.gh-l3 { background: var(--gh-3); border-color: transparent; }
 .gh-swatch.gh-l4 { background: var(--gh-4); border-color: transparent; }
 
-/* Mobile — no sideways scrolling. This block lives last on purpose: it must
-   come after every strip's base rule to win the cascade at equal
-   specificity. Every card strip stacks vertically so the small viewport moves
-   in one direction only. (flex-basis would become a fixed *height* in a
-   column, so cards are reset to `flex: none`.)
-   Deliberately untouched: the GitHub year grid (dense data viz — horizontal
-   scroll is the universal pattern, same as github.com) and the Now ticker
-   (an auto-playing marquee, not a scroll region). */
+/* Mobile — card strips stay strips. The earlier "no sideways scrolling"
+   decision (stack every strip under 600px) was reversed: a phone scrolling
+   through 11 full-width cards is exactly the long vertical scroll this site
+   doesn't want. Strips keep their desktop idiom — flex + x snap + a peeking
+   next card as the swipe affordance — and add overscroll containment so a
+   sideways swipe never drags the page.
+   Kept stacked on purpose: the Recently Watched grid (2-up posters are
+   shorter than a strip and read fine as a grid), case-study screens (full
+   width aids reading), the photo line, and the bookshelf. */
 @media (max-width: 600px) {
-  .collections-strip,
-  .gallery-strip {
-    flex-direction: column;
-    align-items: stretch;
-    overflow: visible;
-  }
-  .collections-strip .coll-card,
-  .gallery-strip .gallery-card {
-    flex: none;
-    width: 100%;
-  }
   .recently-strip {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
