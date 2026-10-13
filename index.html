@@ -24,6 +24,30 @@
     <title>Prathamesh | Design, build, explore</title>
   </head>
   <body>
+    <!-- Blueprint backdrop: a hairline survey grid drifting under a pair of
+         construction circles, in the site's own technical-drawing language.
+         Decorative (aria-hidden), pointer-transparent, behind everything;
+         motion is transform-only so it never repaints content, and it freezes
+         entirely under prefers-reduced-motion. -->
+    <div class="backdrop" aria-hidden="true">
+      <svg class="backdrop__svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" focusable="false">
+        <defs>
+          <pattern id="bk-grid" width="72" height="72" patternUnits="userSpaceOnUse">
+            <path d="M72 0H0v72" fill="none" stroke="currentColor" stroke-width="1" />
+          </pattern>
+        </defs>
+        <rect class="backdrop__grid" width="100%" height="100%" fill="url(#bk-grid)" />
+        <g class="backdrop__spin backdrop__spin--a">
+          <circle cx="500" cy="500" r="380" fill="none" stroke="currentColor" stroke-width="1" />
+          <circle cx="500" cy="500" r="290" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="3 9" />
+        </g>
+        <g class="backdrop__spin backdrop__spin--b">
+          <circle cx="780" cy="180" r="170" fill="none" stroke="currentColor" stroke-width="1" />
+          <path d="M780 10v-0M770 180h20M780 170v20" fill="none" stroke="currentColor" stroke-width="1" />
+        </g>
+        <path class="backdrop__cross" d="M60 60h22M71 49v22" fill="none" stroke="currentColor" stroke-width="1" />
+      </svg>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

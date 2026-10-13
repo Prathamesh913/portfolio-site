@@ -113,11 +113,45 @@ html { scroll-behavior: smooth; }
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+/* Blueprint backdrop — hairline survey geometry behind everything. The line
+   colour flips with the theme; opacity stays low enough that it never
+   competes with content (only the black gaps between sections show it). */
+.backdrop {
+  position: fixed; inset: 0; z-index: -1;
+  overflow: hidden; pointer-events: none;
+  --bk-line: rgba(255, 255, 255, 0.075);
+  --bk-line-strong: rgba(255, 255, 255, 0.13);
+}
+:root[data-theme="light"] .backdrop { --bk-line: rgba(10, 10, 10, 0.08); --bk-line-strong: rgba(10, 10, 10, 0.13); }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) .backdrop { --bk-line: rgba(10, 10, 10, 0.08); --bk-line-strong: rgba(10, 10, 10, 0.13); }
+}
+.backdrop__svg { display: block; width: 100%; height: 100%; color: var(--bk-line); }
+.backdrop__spin, .backdrop__cross { color: var(--bk-line-strong); }
+.backdrop__grid { animation: bk-drift 90s linear infinite; }
+.backdrop__spin { transform-box: view-box; }
+.backdrop__spin--a { transform-origin: 500px 500px; animation: bk-spin 150s linear infinite; }
+.backdrop__spin--b { transform-origin: 780px 180px; animation: bk-spin 110s linear infinite reverse; }
+/* One tile (72px) per loop — the drift is seamless and, at this speed,
+   reads as the grid settling rather than moving. */
+@keyframes bk-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(72px, 72px, 0); }
+}
+@keyframes bk-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .backdrop__grid, .backdrop__spin { animation: none; }
+}
 /* Never allow sideways page scroll: `clip` where supported (no scroll
    container, sticky-safe), `hidden` as the fallback for older browsers. */
 html, body { overflow-x: hidden; overflow-x: clip; }
-html { scroll-behavior: smooth; scroll-padding-top: 2rem; }
-body { margin: 0; min-width: 320px; background: var(--bg); color: var(--ink); line-height: 1.6; }
+html { scroll-behavior: smooth; scroll-padding-top: 2rem; background: var(--bg); }
+/* Background lives on html (not body) so the negative-z-index blueprint
+   backdrop paints above it instead of being hidden by body's own background. */
+body { margin: 0; min-width: 320px; color: var(--ink); line-height: 1.6; }
 /* Raster images can never exceed their container — live artwork included. */
 img { max-width: 100%; }
 a { color: inherit; text-decoration: none; }
