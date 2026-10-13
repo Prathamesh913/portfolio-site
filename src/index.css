@@ -113,37 +113,34 @@ html { scroll-behavior: smooth; }
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-/* Blueprint backdrop — hairline survey geometry behind everything. The line
-   colour flips with the theme; opacity stays low enough that it never
-   competes with content (only the black gaps between sections show it). */
+/* Topographic backdrop — hairline survey contours in two parallax layers
+   behind everything. The line colour flips with the theme; opacity stays low
+   enough that it never competes with content (only the gaps between sections
+   show it). */
 .backdrop {
   position: fixed; inset: 0; z-index: -1;
   overflow: hidden; pointer-events: none;
-  --bk-line: rgba(255, 255, 255, 0.075);
-  --bk-line-strong: rgba(255, 255, 255, 0.13);
+  --bk-line: rgba(255, 255, 255, 0.07);
+  --bk-line-strong: rgba(255, 255, 255, 0.095);
 }
-:root[data-theme="light"] .backdrop { --bk-line: rgba(10, 10, 10, 0.08); --bk-line-strong: rgba(10, 10, 10, 0.13); }
+:root[data-theme="light"] .backdrop { --bk-line: rgba(10, 10, 10, 0.07); --bk-line-strong: rgba(10, 10, 10, 0.095); }
 @media (prefers-color-scheme: light) {
-  :root:not([data-theme]) .backdrop { --bk-line: rgba(10, 10, 10, 0.08); --bk-line-strong: rgba(10, 10, 10, 0.13); }
+  :root:not([data-theme]) .backdrop { --bk-line: rgba(10, 10, 10, 0.07); --bk-line-strong: rgba(10, 10, 10, 0.095); }
 }
-.backdrop__svg { display: block; width: 100%; height: 100%; color: var(--bk-line); }
-.backdrop__spin, .backdrop__cross { color: var(--bk-line-strong); }
-.backdrop__grid { animation: bk-drift 90s linear infinite; }
-.backdrop__spin { transform-box: view-box; }
-.backdrop__spin--a { transform-origin: 500px 500px; animation: bk-spin 150s linear infinite; }
-.backdrop__spin--b { transform-origin: 780px 180px; animation: bk-spin 110s linear infinite reverse; }
-/* One tile (72px) per loop — the drift is seamless and, at this speed,
-   reads as the grid settling rather than moving. */
+.bk-contours { display: block; width: 100%; height: 100%; color: var(--bk-line); }
+.bk-contours__layer path { fill: none; stroke: currentColor; stroke-width: 1; }
+.bk-contours__layer--front { color: var(--bk-line-strong); }
+/* The wave repeats every 600 user units and each loop drifts exactly one
+   wavelength (user-space px), so the motion never seams. The back layer
+   moves slower than the front — that difference is what reads as depth. */
+.bk-contours__layer--back { animation: bk-drift 110s linear infinite; }
+.bk-contours__layer--front { animation: bk-drift 76s linear infinite; }
 @keyframes bk-drift {
   from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(72px, 72px, 0); }
-}
-@keyframes bk-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  to { transform: translate3d(-600px, 0, 0); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .backdrop__grid, .backdrop__spin { animation: none; }
+  .bk-contours__layer { animation: none; }
 }
 /* Never allow sideways page scroll: `clip` where supported (no scroll
    container, sticky-safe), `hidden` as the fallback for older browsers. */
