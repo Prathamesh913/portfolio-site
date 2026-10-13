@@ -113,36 +113,42 @@ html { scroll-behavior: smooth; }
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-/* Dot-matrix backdrop — two parallax layers of hairline dots behind
-   everything: a coarse dim grid drifting slowly behind a finer, brighter one.
-   Pure CSS (no SVG, no JS); opacity stays low enough that the dots never
-   compete with content (only the gaps between sections show them). */
+/* प्र backdrop — the Devanagari mark from the favicon, tiled as a letterhead
+   watermark in two parallax layers (a coarse dim grid behind a fine one).
+   Pure CSS: one white-glyph tile used as a mask, so the tint is a variable
+   that flips with the theme. Opacity stays low enough that it never competes
+   with content (only the gaps between sections show it). */
 .backdrop {
   position: fixed; inset: 0; z-index: -1;
   overflow: hidden; pointer-events: none;
-  --bk-dot-back: rgba(255, 255, 255, 0.035);
-  --bk-dot-front: rgba(255, 255, 255, 0.055);
+  --bk-pra-back: rgba(255, 255, 255, 0.03);
+  --bk-pra-front: rgba(255, 255, 255, 0.05);
 }
-:root[data-theme="light"] .backdrop { --bk-dot-back: rgba(10, 10, 10, 0.04); --bk-dot-front: rgba(10, 10, 10, 0.06); }
+:root[data-theme="light"] .backdrop { --bk-pra-back: rgba(10, 10, 10, 0.035); --bk-pra-front: rgba(10, 10, 10, 0.055); }
 @media (prefers-color-scheme: light) {
-  :root:not([data-theme]) .backdrop { --bk-dot-back: rgba(10, 10, 10, 0.04); --bk-dot-front: rgba(10, 10, 10, 0.06); }
+  :root:not([data-theme]) .backdrop { --bk-pra-back: rgba(10, 10, 10, 0.035); --bk-pra-front: rgba(10, 10, 10, 0.055); }
 }
 /* Overhang keeps the drifting edge out of frame; both layers move exactly one
    48px cell per loop, so each grid — 24px and 48px — wraps seamlessly. */
 .backdrop::before,
 .backdrop::after {
   content: ""; position: absolute; inset: -48px;
-  background-repeat: repeat;
+  -webkit-mask-image: url("/pra-tile.png");
+  mask-image: url("/pra-tile.png");
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
   will-change: transform;
 }
 .backdrop::before {
-  background-image: radial-gradient(var(--bk-dot-back) 1px, transparent 1.5px);
-  background-size: 48px 48px;
+  background-color: var(--bk-pra-back);
+  -webkit-mask-size: 48px 48px;
+  mask-size: 48px 48px;
   animation: bk-dot-drift 96s linear infinite;
 }
 .backdrop::after {
-  background-image: radial-gradient(var(--bk-dot-front) 1.5px, transparent 2px);
-  background-size: 24px 24px;
+  background-color: var(--bk-pra-front);
+  -webkit-mask-size: 24px 24px;
+  mask-size: 24px 24px;
   animation: bk-dot-drift 64s linear infinite;
 }
 @keyframes bk-dot-drift {
