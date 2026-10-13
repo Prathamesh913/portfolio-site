@@ -186,6 +186,28 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   transform: scaleX(0); transform-origin: 0 50%;
   opacity: 0; pointer-events: none;
 }
+/* Floating back-to-top — one quiet instrument-panel tile. Fades in a viewport
+   down (threshold set in JS, so it scales with the viewport), fades out at the
+   top. Uses the standalone `translate` property for the entrance so the press
+   `scale()` composes with it instead of fighting it. Safe-area insets keep it
+   clear of the iPhone home indicator. */
+.to-top {
+  position: fixed; z-index: 120;
+  right: calc(1.25rem + env(safe-area-inset-right, 0px));
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  display: grid; place-items: center;
+  width: 2.75rem; height: 2.75rem; padding: 0;
+  cursor: pointer;
+  background: var(--panel); color: var(--ink-soft);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  font-family: var(--font); font-size: 1rem; font-weight: 700; line-height: 1;
+  opacity: 0; translate: 0 8px; pointer-events: none;
+  transition: opacity 200ms ease, translate 200ms ease, color 150ms ease, border-color 150ms ease, transform 160ms ease-out;
+}
+.to-top.is-visible { opacity: 1; translate: 0 0; pointer-events: auto; }
+.to-top:hover { color: var(--primary); border-color: var(--primary); }
+.to-top:active { transform: scale(0.96); }
 
 .site-shell { overflow-x: clip; }
 .section-frame { width: min(calc(100% - var(--gutter) * 2), var(--content-max)); margin: 0 auto; }

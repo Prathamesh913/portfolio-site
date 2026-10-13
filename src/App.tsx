@@ -10,7 +10,7 @@ import { HireForm } from "./components/HireForm";
 import { ImageLightbox, useImageLightbox } from "./components/ImageLightbox";
 import { OutsideOfWork } from "./components/OutsideOfWork";
 import { SkillIcon, SocialIcon } from "./components/SkillIcons";
-import { ScrollProgress, SiteHeader } from "./components/SiteHeader";
+import { GoToTop, ScrollProgress, SiteHeader } from "./components/SiteHeader";
 import { useInViewOnce } from "./lib/useInViewOnce";
 import { useChipStamp } from "./lib/useChipStamp";
 import { useKeyboardShortcuts } from "./lib/useKeyboardShortcuts";
@@ -305,6 +305,7 @@ function App() {
   return (
     <div className="site-shell">
       <ScrollProgress />
+      <GoToTop />
       <a className="skip-link" href="#work">Skip to work</a>
 
       <SiteHeader

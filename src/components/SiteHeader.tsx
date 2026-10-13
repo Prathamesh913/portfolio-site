@@ -74,6 +74,51 @@ export function ScrollProgress() {
 
   return <span ref={ref} className="scroll-progress" aria-hidden="true" />;
 }
+
+// Floating "back to top" — appears once the visitor is a full viewport down,
+// which adapts to every viewport (a short landscape phone gets a shorter
+// runway than a desktop monitor). Hidden again at the top, and untabbable
+// while hidden so the keyboard never meets an invisible control.
+export function GoToTop() {
+  const ref = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const el = ref.current;
+      if (!el) return;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const show = max > 0 && window.scrollY > window.innerHeight;
+      el.classList.toggle("is-visible", show);
+      el.tabIndex = show ? 0 : -1;
+      el.setAttribute("aria-hidden", show ? "false" : "true");
+    };
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return (
+    <button
+      ref={ref}
+      className="to-top"
+      type="button"
+      aria-label="Back to top"
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+    >
+      <span aria-hidden="true">↑</span>
+    </button>
+  );
+}
 export function SiteHeader({
   wordmarkHref,
   wordmarkLabel,
