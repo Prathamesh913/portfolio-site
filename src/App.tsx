@@ -1,10 +1,11 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { blogPosts, blogSeries, buildProjects, experience, galleryItems, skills, socialLinks, toolkit } from "./data";
 import type { BlogPost, ExperienceItem, GalleryItem } from "./data";
 import { allCaseStudies, CASE_ORDER } from "./data/caseStudies";
 import type { CaseStudy } from "./data/caseStudies";
 import { CaseStudyPage } from "./components/CaseStudyPage";
 import { CurrentlySection } from "./components/CurrentlySection";
+import { InitialLoader } from "./components/InitialLoader";
 import { GithubActivity } from "./components/GithubActivity";
 import { HireForm } from "./components/HireForm";
 import { ImageLightbox, useImageLightbox } from "./components/ImageLightbox";
@@ -230,6 +231,14 @@ function GallerySection() {
 }
 
 function App() {
+  const [booted, setBooted] = useState(() => {
+    try { return sessionStorage.getItem("portfolio-booted") !== "1"; }
+    catch { return true; }
+  });
+  const handleBootDone = useCallback(() => {
+    try { sessionStorage.setItem("portfolio-booted", "1"); } catch {}
+    setBooted(false);
+  }, []);
   const caseProjects = CASE_ORDER.map((slug) => caseStudies[slug]).filter((c): c is CaseStudy => !!c);
   const toolProjects = buildProjects;
   // Contact row: GitHub first, then whatever social/resume links have URLs.
@@ -299,11 +308,18 @@ function App() {
   }, []);
 
   if (caseSlug && caseStudies[caseSlug]) {
-    return <CaseStudyPage key={caseSlug} data={caseStudies[caseSlug]} />;
+    return (
+      <>
+        {booted && <InitialLoader onDone={handleBootDone} />}
+        <CaseStudyPage key={caseSlug} data={caseStudies[caseSlug]} />
+      </>
+    );
   }
 
   return (
-    <div className="site-shell">
+    <>
+      {booted && <InitialLoader onDone={handleBootDone} />}
+      <div className="site-shell">
       <ScrollProgress />
       <GoToTop />
       <a className="skip-link" href="#work">Skip to work</a>
@@ -534,7 +550,8 @@ function App() {
           <p className="footer-meta">© 2026 Prathamesh · <a href="#top">top ↑</a></p>
         </footer>
       </main>
-    </div>
+      </div>
+    </>
   );
 }
 
