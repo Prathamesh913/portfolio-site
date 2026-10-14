@@ -95,6 +95,26 @@ export function CurrentlySection() {
       </div>
       <div className="currently-grid">
         <CardShell
+          label="Working"
+          source="snapshot"
+          snapshotLabel="Currently building"
+          liveLabel="CinePrint"
+          state="● in progress"
+        >
+          <div className="currently-object currently-object--working">
+            <img
+              className="currently-working__shot"
+              src="/media/currently/cineprint-ios.png"
+              alt="CinePrint iOS app — alternative movie posters and vintage ticket prints"
+            />
+          </div>
+          <p className="currently-title">CinePrint iOS</p>
+          <p className="currently-meta">
+            Alternative movie posters, film art, and vintage ticket prints — in your pocket.
+          </p>
+        </CardShell>
+
+        <CardShell
           label="Watching"
           source={data.sources.trakt}
           liveLabel="Trakt"
