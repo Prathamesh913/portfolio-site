@@ -9,6 +9,7 @@ no context from the audit can apply them verbatim.
 | 002 | Dissolve the CRT poster through snow on a channel change | LOW | TODO |
 | 003 | Rewrite CRT power as interruptible transitions with a composite-only line flash | MEDIUM | DONE |
 | 004 | Slow the boot sequence so it reads as a first-run, not a flash | MEDIUM | DONE |
+| 005 | Experience accordion: layout + motion polish | MEDIUM | DONE |
 
 ## Execution order
 
@@ -17,6 +18,9 @@ no context from the audit can apply them verbatim.
 3. **002** — independent; re-check its file:line references after 003 lands (same files).
 4. **004** — independent; touches only `src/components/InitialLoader.tsx` and the loader
    block in `src/index.css`. Should be reviewed after feel-checking in slow motion.
+5. **005** — independent (CSS only, no JS/markup). Touches the `.exp-*` block,
+   row-entrance rules, and the mobile media query. Re-run feel check before merging
+   002 (both touch index.css near different lines) — no textual conflict expected.
 
 ## Notes
 
