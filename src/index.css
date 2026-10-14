@@ -1055,12 +1055,16 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 }
 .currently-updated { margin: 0; font-family: var(--font); font-size: 0.72rem; color: var(--muted); }
 .currently-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 1rem; margin-top: 1.1rem;
+  display: flex; gap: 1rem;
+  margin-top: 1.1rem;
+  padding: 0.25rem 0.25rem 0.9rem;
+  overflow-x: auto; scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
 }
 .currently-card {
   --object-h: 8.75rem;
-  display: flex; flex-direction: column; min-width: 0;
+  flex: 0 0 18rem; min-width: 0; scroll-snap-align: start;
+  display: flex; flex-direction: column;
   border: 1px solid var(--border); border-radius: var(--radius);
   background: var(--panel); padding: 1rem 1.1rem 1.1rem;
   box-shadow: var(--shadow);
