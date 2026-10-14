@@ -11,7 +11,7 @@ const LINES = [
   "> ready",
 ];
 
-const THRESHOLDS = [0, 16, 34, 54, 74, 92];
+const THRESHOLDS = [0, 10, 28, 48, 70, 86];
 
 export function InitialLoader({ onDone }: InitialLoaderProps) {
   const reduce = useRef(
@@ -27,7 +27,7 @@ export function InitialLoader({ onDone }: InitialLoaderProps) {
   useEffect(() => {
     document.body.style.overflow = "hidden";
 
-    const duration = reduce.current ? 420 : 960;
+    const duration = reduce.current ? 700 : 1800;
     const start = performance.now();
     let raf = 0;
     let doneTimer = 0;
@@ -39,7 +39,7 @@ export function InitialLoader({ onDone }: InitialLoaderProps) {
         raf = requestAnimationFrame(tick);
       } else {
         setLeaving(true);
-        doneTimer = window.setTimeout(() => onDoneRef.current(), 260);
+        doneTimer = window.setTimeout(() => onDoneRef.current(), 340);
       }
     };
     raf = requestAnimationFrame(tick);
