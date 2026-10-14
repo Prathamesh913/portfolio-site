@@ -697,7 +697,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   display: inline-grid; place-items: center; flex: 0 0 auto;
   width: 1.35rem; height: 1.35rem; border-radius: 6px;
   color: var(--muted);
-  transition: rotate 200ms cubic-bezier(0.77, 0, 0.175, 1), color 150ms ease;
+  transition: rotate 180ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms ease;
 }
 .exp-row__trigger:hover .exp-row__chevron { color: var(--ink-soft); }
 .exp-row.is-open .exp-row__chevron { rotate: 180deg; color: var(--ink-soft); }
@@ -707,22 +707,21 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .exp-row__panel {
   display: grid; grid-template-rows: 0fr;
   visibility: hidden;
-  transition: grid-template-rows 180ms cubic-bezier(0.23, 1, 0.32, 1), visibility 0s linear 180ms;
+  transition: grid-template-rows 180ms cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 180ms;
 }
 .exp-row.is-open .exp-row__panel {
   grid-template-rows: 1fr;
   visibility: visible;
-  transition: grid-template-rows 240ms cubic-bezier(0.23, 1, 0.32, 1), visibility 0s;
+  transition: grid-template-rows 220ms cubic-bezier(0.4, 0, 0.2, 1), visibility 0s;
 }
 .exp-row__panel-inner {
   overflow: hidden; min-height: 0;
-  opacity: 0; translate: 0 4px;
-  transition: opacity 120ms ease, translate 120ms ease;
+  opacity: 0;
+  transition: opacity 180ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 .exp-row.is-open .exp-row__panel-inner {
-  opacity: 1; translate: 0 0;
-  transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1) 80ms,
-              translate 200ms cubic-bezier(0.23, 1, 0.32, 1) 80ms;
+  opacity: 1;
+  transition: opacity 180ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 /* The highlights are the section's body copy: they carry the readable measure
    and the breathing room, while everything around them stays metadata. */
