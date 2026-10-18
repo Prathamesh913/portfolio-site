@@ -1588,6 +1588,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   display: flex; gap: 1rem;
   margin-top: 1rem; padding: 0.25rem 0.25rem 0.9rem;
   overflow-x: auto; scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
 }
 .recently-strip:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; border-radius: var(--radius); }
 .recently-card { flex: 0 0 clamp(8.5rem, 30vw, 10.5rem); min-width: 0; margin: 0; scroll-snap-align: start; }
@@ -2041,15 +2042,9 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
    doesn't want. Strips keep their desktop idiom — flex + x snap + a peeking
    next card as the swipe affordance — and add overscroll containment so a
    sideways swipe never drags the page.
-   Kept stacked on purpose: the Recently Watched grid (2-up posters are
-   shorter than a strip and read fine as a grid), case-study screens (full
-   width aids reading), the photo line, and the bookshelf. */
+   Kept stacked on purpose: case-study screens (full width aids reading),
+   the photo line, and the bookshelf. */
 @media (max-width: 600px) {
-  .recently-strip {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    overflow: visible;
-  }
   .cs-screens {
     flex-direction: column;
     overflow: visible;
