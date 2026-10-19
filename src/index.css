@@ -633,7 +633,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .gallery-lightbox {
   position: fixed; inset: 0; z-index: 200;
   display: flex; align-items: center; justify-content: center; padding: 1.25rem;
-  background: rgba(0, 0, 0, 0.82); overflow-y: auto;
+  background: rgba(0, 0, 0, 0.82); overflow: hidden;
+  overscroll-behavior: contain;
   opacity: 0; transition: opacity 200ms ease;
 }
 .gallery-lightbox.is-shown { opacity: 1; }
@@ -661,7 +662,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 }
 .gallery-lightbox__btn:hover { color: var(--primary); border-color: var(--primary); }
 .gallery-lightbox__img {
-  width: 100%; height: auto; display: block; margin-top: 1rem;
+  width: auto; height: auto; max-width: 100%; max-height: calc(100dvh - 14rem);
+  display: block; margin: 1rem auto 0; object-fit: contain;
   border: 1px solid var(--border); border-radius: var(--radius); background: var(--element);
 }
 .gallery-lightbox__title { margin: 1rem 0 0; font-family: var(--font); font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; }
