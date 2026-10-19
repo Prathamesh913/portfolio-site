@@ -1773,6 +1773,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   padding-block: var(--track-pad) 2.25rem;
   overflow-x: auto; overflow-y: hidden;
   scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
   scrollbar-width: none;
   cursor: grab;
 }
@@ -1846,6 +1847,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .shelf-scroll {
   margin-top: 1.25rem; padding: 0.3rem 0.3rem 0.7rem;
   overflow-x: auto;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
 }
 .shelf-scroll:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; border-radius: var(--radius); }
 .shelf {
@@ -1862,7 +1865,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   position: relative; z-index: 1;
   display: flex; flex-direction: column; min-width: 0;
   width: calc(var(--book-w) * var(--shelf-unit));
-  margin: 0;
+  margin: 0; scroll-snap-align: start;
   transition: transform 200ms cubic-bezier(0.22, 0.8, 0.3, 1);
 }
 .shelf-book__cover {
@@ -2042,8 +2045,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
    doesn't want. Strips keep their desktop idiom — flex + x snap + a peeking
    next card as the swipe affordance — and add overscroll containment so a
    sideways swipe never drags the page.
-   Kept stacked on purpose: case-study screens (full width aids reading),
-   the photo line, and the bookshelf. */
+   Kept stacked on purpose: case-study screens (full width aids reading). */
 @media (max-width: 600px) {
   .cs-screens {
     flex-direction: column;
@@ -2057,20 +2059,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
     max-width: 18rem;
     margin-inline: auto;
   }
-  /* The photo line stands its prints in a column: wire and clips hidden. */
-  .oow-line__wire,
-  .oow-line__clip { display: none; }
-  .oow-line__track {
-    flex-direction: column;
-    align-items: center;
-    overflow: visible;
-    cursor: default;
-  }
-  .oow-line__item { padding-top: 0; }
-  /* The bookshelf becomes a wrapping grid: plank hidden. */
-  .shelf-scroll { overflow: visible; }
-  .shelf { width: auto; flex-wrap: wrap; justify-content: center; }
-  .shelf::after { display: none; }
 }
 
 /* INITIAL LOADER — first-visit boot sequence. Instrument-panel voice: monospace
