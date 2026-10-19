@@ -48,6 +48,7 @@ function CaseStudyGallery({ gallery }: { gallery: CaseStudy["galleries"][number]
               className="cs-screen__btn"
               aria-haspopup="dialog"
               aria-label={`Open larger view: ${s.alt}`}
+              data-cuelume-open
               onClick={() => lightbox.open(i)}
             >
               <img src={s.src} alt={s.alt} loading="lazy" decoding="async" width={s.w} height={s.h} />

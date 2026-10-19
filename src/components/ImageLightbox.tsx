@@ -107,7 +107,7 @@ export function ImageLightbox({
       <div className="gallery-lightbox__panel" ref={dialogRef} onClick={(e) => e.stopPropagation()}>
         <div className="gallery-lightbox__bar">
           {hasMany && <p className="gallery-lightbox__count">{index + 1} / {entries.length}</p>}
-          <button type="button" className="gallery-lightbox__btn" onClick={requestClose} aria-label="Close larger view">Close ✕</button>
+          <button type="button" className="gallery-lightbox__btn" onClick={requestClose} aria-label="Close larger view" data-cuelume-close>Close ✕</button>
         </div>
         <img
           className="gallery-lightbox__img"
@@ -135,6 +135,7 @@ export function ImageLightbox({
             <button
               type="button"
               className="gallery-lightbox__btn"
+              data-cuelume-navigate
               onClick={() => onNavigate(prevIndex)}
               aria-label={`Previous: ${entries[prevIndex].title ?? entries[prevIndex].alt}`}
             >
@@ -143,6 +144,7 @@ export function ImageLightbox({
             <button
               type="button"
               className="gallery-lightbox__btn"
+              data-cuelume-navigate
               onClick={() => onNavigate(nextIndex)}
               aria-label={`Next: ${entries[nextIndex].title ?? entries[nextIndex].alt}`}
             >

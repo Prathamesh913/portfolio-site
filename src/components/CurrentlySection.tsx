@@ -40,7 +40,7 @@ function CardShell({ label, source, liveLabel, href, linkLabel, state, snapshotL
       <div className="currently-foot">
         <span className="currently-state">{state}</span>
         {href && (
-          <a className="currently-link" href={href} target="_blank" rel="noreferrer">
+          <a className="currently-link" href={href} target="_blank" rel="noreferrer" data-cuelume-tap>
             {linkLabel} ↗<span className="sr-only"> (opens in a new tab)</span>
           </a>
         )}

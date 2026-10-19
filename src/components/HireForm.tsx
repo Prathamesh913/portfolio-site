@@ -10,6 +10,7 @@
 // that hides where it sends is a form that looks broken.
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { play } from "cuelume";
 import { CmdlineToast, type ToastMessage } from "./CmdlineToast";
 
 const CONTACT_EMAIL = "prathameshjadhav913@gmail.com";
@@ -46,6 +47,7 @@ export function HireForm() {
     const form = event.currentTarget;
     const data = new FormData(form);
     setState("sending");
+    play("loading", { emphasis: "subtle" });
 
     const payload = JSON.stringify({
       from: String(data.get("from") ?? ""),
@@ -75,6 +77,7 @@ export function HireForm() {
           setState("sent");
           setReceipt({ subject });
           setToast({ text: "message sent", tone: "info" });
+          play("success");
           return;
         }
         // 503 = this endpoint exists but has no mail key; the mirror would
@@ -94,6 +97,7 @@ export function HireForm() {
       text: unconfigured ? "form isn't connected — email above works" : "couldn't send — try again",
       tone: "error",
     });
+    play("error", { emphasis: "subtle" });
   };
 
   return (
@@ -110,6 +114,7 @@ export function HireForm() {
           <button
             className="hire__again"
             type="button"
+            data-cuelume-tap
             onClick={() => {
               setReceipt(null);
               setState("idle");
@@ -136,6 +141,7 @@ export function HireForm() {
             required
             autoComplete="email"
             placeholder="you@example.com"
+            data-cuelume-type
           />
         </div>
         <div className="hire__row">
@@ -148,6 +154,7 @@ export function HireForm() {
             required
             maxLength={120}
             placeholder="What's this about?"
+            data-cuelume-type
           />
         </div>
         <div className="hire__body">
@@ -160,11 +167,12 @@ export function HireForm() {
             rows={4}
             maxLength={4000}
             placeholder="We found your profile and have an opportunity that matches your stack…"
+            data-cuelume-type
           />
         </div>
         <div className="hire__foot">
           <p className="hire__status" role="status" aria-live="polite">{STATUS_TEXT[state]}</p>
-          <button className="hire__send" type="submit" disabled={state === "sending"}>
+          <button className="hire__send" type="submit" data-cuelume-tap disabled={state === "sending"}>
             send
           </button>
         </div>

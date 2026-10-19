@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { SoundToggle } from "./SoundToggle";
 import { ThemeToggle } from "./ThemeToggle";
 
 type SiteHeaderProps = {
@@ -113,6 +114,7 @@ export function GoToTop() {
       className="to-top"
       type="button"
       aria-label="Back to top"
+      data-cuelume-tap
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
     >
       <span aria-hidden="true">↑</span>
@@ -159,10 +161,11 @@ export function SiteHeader({
       </a>
       <div className="site-header__group" ref={groupRef}>
         {children && (
-          <nav className="site-nav" aria-label={navLabel}>
+          <nav className="site-nav" aria-label={navLabel} data-cuelume-navigate>
             {children}
           </nav>
         )}
+        <SoundToggle />
         <ThemeToggle />
         {children && (
           <div className="nav-menu">
@@ -174,6 +177,7 @@ export function SiteHeader({
               aria-controls={menuId}
               aria-label={open ? "Close navigation menu" : "Open navigation menu"}
               onClick={() => setOpen((value) => !value)}
+              data-cuelume-tap
             >
               {open ? <CloseIcon /> : <MenuIcon />}
             </button>
@@ -183,6 +187,7 @@ export function SiteHeader({
                 id={menuId}
                 aria-label={navLabel}
                 onClick={() => setOpen(false)}
+                data-cuelume-navigate
               >
                 {children}
               </nav>

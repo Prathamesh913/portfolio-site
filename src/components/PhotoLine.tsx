@@ -139,6 +139,7 @@ export function PhotoLine({ photos }: { photos: Photo[] }) {
                   className="polaroid__button"
                   aria-haspopup="dialog"
                   aria-label={`Open larger view: ${photo.alt}`}
+                  data-cuelume-open
                   onClick={() => {
                     if (!dragMoved.current) lightbox.open(i);
                   }}

@@ -352,6 +352,27 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .lamp-rays { stroke: var(--accent-primary); stroke-width: 1.5; stroke-linecap: round; opacity: 0; transition: opacity 250ms ease; }
 .lamp-toggle.is-on .lamp-rays { opacity: 1; transition-delay: 70ms; }
 
+/* Sound toggle — speaker with live waves; a slash appears when muted */
+.sound-toggle {
+  position: relative;
+  appearance: none; display: inline-grid; place-items: center; flex: 0 0 auto;
+  width: 2.5rem; height: 2.5rem; padding: 0; cursor: pointer;
+  border: 0; border-radius: 10px;
+  background: transparent; color: var(--ink-soft);
+  transition: color 150ms ease, transform 150ms ease;
+}
+.sound-toggle:hover { color: var(--accent-primary); transform: translateY(-1px); }
+.sound-toggle:active { transform: translateY(0) scale(0.96); }
+.sound-toggle svg { width: 1.4rem; height: 1.4rem; display: block; }
+.sound-toggle__wave { opacity: 0; transition: opacity 200ms ease; }
+.sound-toggle.is-on .sound-toggle__wave { opacity: 1; }
+.sound-toggle__slash { opacity: 1; transition: opacity 200ms ease; }
+.sound-toggle.is-on .sound-toggle__slash { opacity: 0; }
+
+@media (max-width: 600px) {
+  .sound-toggle { width: 2.25rem; height: 2.25rem; }
+}
+
 /* Intro */
 .intro { padding: 3rem 0 2rem; }
 .intro h1 { margin: 0; font-size: 1.4rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.15; }

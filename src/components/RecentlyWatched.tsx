@@ -64,6 +64,7 @@ function Card({ item }: { item: RecentItem }) {
           href={item.traktUrl}
           target="_blank"
           rel="noreferrer"
+          data-cuelume-tap
           aria-label={`${title}${meta ? `, ${meta}` : ""} on Trakt (opens in a new tab)`}
         >
           {body}
@@ -124,7 +125,7 @@ export function RecentlyWatched() {
       </div>
       {snapshot.profileUrl && (
         <p className="recently-profile">
-          <a href={snapshot.profileUrl} target="_blank" rel="noreferrer">
+          <a href={snapshot.profileUrl} target="_blank" rel="noreferrer" data-cuelume-tap>
             View my Trakt ↗<span className="sr-only"> (opens in a new tab)</span>
           </a>
         </p>

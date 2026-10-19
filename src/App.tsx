@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { bind } from "cuelume";
 import { blogPosts, blogSeries, buildProjects, experience, galleryItems, skills, socialLinks, toolkit } from "./data";
 import type { BlogPost, ExperienceItem, GalleryItem } from "./data";
 import { allCaseStudies, CASE_ORDER } from "./data/caseStudies";
@@ -147,6 +148,8 @@ function ExperienceRow({
             className="exp-row__trigger"
             aria-expanded={open}
             aria-controls={panelId}
+            data-cuelume-open={open ? undefined : ""}
+            data-cuelume-close={open ? "" : undefined}
             onClick={onToggle}
           >
             <span className="exp-row__role">
@@ -200,6 +203,7 @@ function GallerySection() {
               className="gallery-thumb"
               aria-haspopup="dialog"
               aria-label={`Open larger view: ${item.title}`}
+              data-cuelume-open
               onClick={() => lightbox.open(i)}
             >
               <img
@@ -239,6 +243,11 @@ function App() {
     try { sessionStorage.setItem("portfolio-booted", "1"); } catch {}
     setBooted(false);
   }, []);
+
+  // Wire the declarative sound bindings once; bind() handles elements added
+  // later, and returns an unbind for StrictMode's double-mount.
+  useEffect(() => bind(), []);
+
   const caseProjects = CASE_ORDER.map((slug) => caseStudies[slug]).filter((c): c is CaseStudy => !!c);
   const toolProjects = buildProjects;
   // Contact row: GitHub first, then whatever social/resume links have URLs.
@@ -445,8 +454,8 @@ function App() {
           <div className="collections-head">
             <h2>Archive <span className="section-count">{galleryItems.length} images · {blogPosts.length} posts</span></h2>
             <div className="collections-toggle" role="group" aria-label="Switch between gallery and blogs">
-              <button type="button" aria-pressed={archiveView === "gallery"} onClick={() => toggleArchiveView("gallery")}>Gallery</button>
-              <button type="button" aria-pressed={archiveView === "blogs"} onClick={() => toggleArchiveView("blogs")}>Blogs</button>
+              <button type="button" aria-pressed={archiveView === "gallery"} data-cuelume-select onClick={() => toggleArchiveView("gallery")}>Gallery</button>
+              <button type="button" aria-pressed={archiveView === "blogs"} data-cuelume-select onClick={() => toggleArchiveView("blogs")}>Blogs</button>
             </div>
           </div>
 
@@ -535,7 +544,7 @@ function App() {
             <h3 className="contact-links__title">reach out to me at</h3>
             <div className="skill-chips">
               {contactLinks.map((link) => (
-                <a className="skill-chip" href={link.href} target="_blank" rel="noreferrer" key={link.label}>
+                <a className="skill-chip" href={link.href} target="_blank" rel="noreferrer" key={link.label} data-cuelume-tap>
                   <span className="skill-chip__icon" aria-hidden="true"><SocialIcon name={link.label} /></span>
                   {link.label}
                   <span className="sr-only">: {link.note} (opens in a new tab)</span>

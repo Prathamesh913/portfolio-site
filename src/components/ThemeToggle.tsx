@@ -57,6 +57,7 @@ export function ThemeToggle() {
       data-shortcut="t"
       aria-label={isOn ? "Switch to light mode" : "Switch to dark mode"}
       title={isOn ? "Switch to light mode" : "Switch to dark mode"}
+      data-cuelume-toggle
       onClick={() => setTheme(nextTheme)}
     >
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
