@@ -40,6 +40,10 @@ index.html          SEO and application shell
 
 Content is intentionally separated from presentation. Replace records in `src/data/` and media paths under `public/media/` as real work becomes available.
 
+## Credits
+
+- Animated backdrop: "Sine Plasma" by [ASCII Magic](https://www.ascii-magic.com/ascii/plasma), used under the MIT licence and re-tinted at runtime.
+
 ## Deployment
 
 The production output is a static `dist/` directory. It can be deployed to any static host that supports Vite output, including Netlify, Vercel, or GitHub Pages. Deployment configuration will be added only if a target host requires it.

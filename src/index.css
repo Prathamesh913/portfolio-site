@@ -113,57 +113,35 @@ html { scroll-behavior: smooth; }
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-/* प्र backdrop — the Devanagari mark from the favicon, tiled as a letterhead
-   watermark in two parallax layers (a coarse dim grid behind a fine one).
-   Pure CSS: one white-glyph tile used as a mask, so the tint is a variable
-   that flips with the theme. Opacity stays low enough that it never competes
-   with content (only the gaps between sections show it). */
+/* ASCII backdrop — ASCII Magic's sine plasma, re-tinted to the brand and drawn
+   cover-fit on a canvas (see PlasmaBackdrop.tsx). `color` tells the component
+   whether the page is in light or dark mode; --primary sets the palette hue.
+   Z-index -1 and pointer-transparent keep it strictly decorative. */
 .backdrop {
   position: fixed; inset: 0; z-index: -1;
   overflow: hidden; pointer-events: none;
-  --bk-pra-back: rgba(255, 255, 255, 0.055);
-  --bk-pra-front: rgba(255, 255, 255, 0.08);
+  color: var(--ink);
 }
-:root[data-theme="light"] .backdrop { --bk-pra-back: rgba(10, 10, 10, 0.06); --bk-pra-front: rgba(10, 10, 10, 0.085); }
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme]) .backdrop { --bk-pra-back: rgba(10, 10, 10, 0.06); --bk-pra-front: rgba(10, 10, 10, 0.085); }
-}
-/* Overhang keeps the drifting edge out of frame; both layers move exactly one
-   48px cell per loop, so each grid — 24px and 48px — wraps seamlessly. */
-.backdrop::before,
+.backdrop canvas { display: block; width: 100%; height: 100%; }
+/* Keep long-form copy off the busiest part of the field: a soft dark stage
+   over the reading column, with the plasma glowing in the gutters. Mobile
+   hides it — there the content spans the full width. */
 .backdrop::after {
-  content: ""; position: absolute; inset: -48px;
-  -webkit-mask-image: url("/pra-tile.png");
-  mask-image: url("/pra-tile.png");
-  -webkit-mask-repeat: repeat;
-  mask-repeat: repeat;
-  will-change: transform;
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.42) 30%, rgba(0, 0, 0, 0.42) 70%, transparent 100%);
 }
-.backdrop::before {
-  background-color: var(--bk-pra-back);
-  -webkit-mask-size: 48px 48px;
-  mask-size: 48px 48px;
-  animation: bk-dot-drift 96s linear infinite;
+:root[data-theme="light"] .backdrop::after {
+  background: linear-gradient(90deg, transparent 0%, rgba(247, 248, 249, 0.66) 30%, rgba(247, 248, 249, 0.66) 70%, transparent 100%);
 }
-.backdrop::after {
-  background-color: var(--bk-pra-front);
-  -webkit-mask-size: 24px 24px;
-  mask-size: 24px 24px;
-  animation: bk-dot-drift 64s linear infinite;
-}
-@keyframes bk-dot-drift {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(-48px, 0, 0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .backdrop::before, .backdrop::after { animation: none; }
+@media (max-width: 899px) {
+  .backdrop::after { display: none; }
 }
 /* Never allow sideways page scroll: `clip` where supported (no scroll
    container, sticky-safe), `hidden` as the fallback for older browsers. */
 html, body { overflow-x: hidden; overflow-x: clip; }
 html { scroll-behavior: smooth; scroll-padding-top: 2rem; background: var(--bg); }
-/* Background lives on html (not body) so the negative-z-index blueprint
-   backdrop paints above it instead of being hidden by body's own background. */
+/* Background lives on html (not body) so the negative-z-index ASCII backdrop
+   paints above it instead of being hidden by body's own background. */
 body { margin: 0; min-width: 320px; color: var(--ink); line-height: 1.6; }
 /* Raster images can never exceed their container — live artwork included. */
 img { max-width: 100%; }

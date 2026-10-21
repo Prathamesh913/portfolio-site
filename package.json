@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
+    "ascii-magic-art": "^1.0.2",
     "cuelume": "^0.2.8",
     "react": "latest",
     "react-dom": "latest",

@@ -118,3 +118,15 @@ Alternatives Considered: Three separate disjointed visual themes; identical repe
 
 Status: Accepted
 
+# D011 — Animated ASCII Backdrop
+
+Date: 2026-10-20
+
+Decision: Replace the tiled प्र watermark with ASCII Magic's Sine Plasma piece (MIT), drawn cover-fit on one full-viewport canvas and re-tinted at runtime toward the brand orange. The 88×30 frame plays at 15fps and 0.6× speed, paused when hidden; the field fades to a still frame under reduced motion and drops to a whisper in the light theme. A soft scrim over the reading column keeps long-form copy off the busiest part of the field; on the light theme the block glyphs become a halftone dot ramp in a brighter peach palette, so the field reads as print rather than a woven grid.
+
+Reason: The plasma gives the page a living technical texture without requiring a custom simulation, and re-tinting its rainbow palette around --primary keeps the stock piece inside this portfolio's colour system. Loading the piece as an ES module rather than their CDN element keeps the asset self-hosted, typed, and controllable.
+
+Alternatives Considered: A bespoke ASCII contour field; the rainbow original; matrix rain or flow field; keeping the प्र dot grid.
+
+Status: Accepted
+
