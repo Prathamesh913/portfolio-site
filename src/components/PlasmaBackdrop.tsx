@@ -3,24 +3,36 @@ import create, { meta } from "ascii-magic-art/pieces/plasma.js";
 
 /* Plasma backdrop — ASCII Magic's "Sine Plasma" (MIT), re-coloured for the
    site. The piece is a 88×30 frame at 30fps; we draw it cover-fit on a canvas
-   behind the page, tinted into the brand's orange family and kept faint.
+   behind the page, tinted into the brand's copper family in dark mode and a
+   cool graphite in light mode.
 
-   Dark mode keeps the solid block glyphs, where copper on black reads as
-   ambient light. Light mode swaps them for a halftone dot ramp and a lighter,
-   more saturated palette: the same field, read as printed ink on paper.
-   The palette is derived from --primary at runtime. */
+   Both themes draw the Devanagari mark प्र instead of the source blocks: the
+   field becomes a drifting grid of the site's initial, one mark per source
+   cell. Each mark keeps its original density as scale and opacity, and a slow
+   per-glyph breath keeps the texture alive without competing with the page.
+   Dark tones are derived from --primary; light tones stay neutral so the
+   porcelain paper never reads as sepia. */
 
 const FRAME_FPS = 15;
 const SPEED = 0.6;
-const ALPHA_DARK = 0.12;
-const ALPHA_LIGHT = 0.18;
+const ALPHA_DARK = 0.32;
+const ALPHA_LIGHT = 0.25;
 /** Cell width as a fraction of font size for JetBrains Mono. */
 const CELL_RATIO = 0.6;
 const ASPECT = 1 / CELL_RATIO;
-/** Light mode trades the solid blocks for a halftone dot ramp: the same
-    density, read as printed ink instead of a woven grid. */
-const DOT_RAMP: Record<string, string> = { "░": "·", "▒": "·", "▓": "∙", "█": "•" };
-const DOT_RE = /[░▒▓█]/g;
+/** The mark. Source density (░▒▓█) becomes glyph size plus opacity. */
+const GLYPH = "प्र";
+const GLYPH_FONT =
+  '"Noto Sans Devanagari", "Nirmala UI", "Devanagari Sangam MN", system-ui, sans-serif';
+const DENSITY: Record<string, number> = { "░": 0, "▒": 1, "▓": 2, "█": 3 };
+/** Draw one mark every N cells; 1 keeps the full 88×30 weave. */
+const GLYPH_STEP = 1;
+/** Mark size as a fraction of its cell, kept small for a fine texture. */
+const GLYPH_FIT = 0.62;
+/** Source density ░▒▓█ → mark size and opacity, so the plasma's shape survives
+    the swap from blocks to a single glyph. */
+const SIZE_RAMP = [0.7, 0.8, 0.9, 1];
+const ALPHA_RAMP = [0.32, 0.5, 0.74, 1];
 /** Frame held for visitors who prefer reduced motion. */
 const STILL_TIME = 2.6;
 
@@ -66,14 +78,14 @@ function hslToHex(h: number, s: number, l: number): string {
   );
 }
 
-/** Collapse the rainbow into four copper tones around the brand hue. Drawing
-    four inks instead of thirty-six lets whole runs of a row share one fill,
-    which is what keeps a full-viewport redraw cheap. */
+/** Collapse the rainbow into four inks: copper tones around the brand hue in
+    dark mode, and neutral cool-greys in light mode so the field never adds a
+    yellow cast to the porcelain paper. */
 const TONES = 4;
 function tintedPalette(source: Record<string, string>, baseHue: number, light: boolean) {
   const colors = Array.from({ length: TONES }, (_, i) =>
     light
-      ? hslToHex(baseHue + 1 + i * 2.2, 64 + i * 3, 62 + i * 4)
+      ? hslToHex(214, 5 + i * 1.5, 56 + i * 4.5)
       : hslToHex(baseHue + 2 + i * 2, 38 + i * 4, 29 + i * 6)
   );
   const index: Record<string, number> = {};
@@ -103,15 +115,19 @@ export function PlasmaBackdrop() {
 
     let width = 0;
     let height = 0;
+    let dpr = 1;
     let cellW = 16;
     let cellH = 27;
     let offsetX = 0;
     let offsetY = 0;
+    let inkW = 16;
+    let inkH = 27;
     let ink = "#eeeeee";
     let toneColors: string[] = [];
     let toneIndex: Record<string, number> = {};
+    /** One pre-rendered प्र per ink tone, so the frame draws images, not text. */
+    let sprites: HTMLCanvasElement[] = [];
     let alpha = ALPHA_DARK;
-    let dark = true;
     let elapsed = 0;
     let lastTick = 0;
     let raf = 0;
@@ -120,12 +136,11 @@ export function PlasmaBackdrop() {
     const readTheme = () => {
       const styles = getComputedStyle(canvas);
       ink = styles.color || ink;
-      const channels = styles.color.match(/[\d.]+/g);
-      // Ink is near-white on the dark theme, near-black on the light one.
-      const isLightTheme = channels && channels.length >= 3
-        ? (0.2126 * +channels[0] + 0.7152 * +channels[1] + 0.0722 * +channels[2]) / 255 < 0.5
-        : false;
-      dark = !isLightTheme;
+      // The inline boot script always stamps data-theme; fall back to the OS.
+      const theme = document.documentElement.dataset.theme;
+      const isLightTheme = theme
+        ? theme === "light"
+        : window.matchMedia("(prefers-color-scheme: light)").matches;
       alpha = (isLightTheme ? ALPHA_LIGHT : ALPHA_DARK) * (window.innerWidth < 640 ? 0.7 : 1);
 
       const primary = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim();
@@ -138,7 +153,7 @@ export function PlasmaBackdrop() {
     const layout = () => {
       width = window.innerWidth;
       height = window.innerHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -148,34 +163,67 @@ export function PlasmaBackdrop() {
       cellH = cellW * ASPECT;
       offsetX = (width - meta.cols * cellW) / 2;
       offsetY = (height - meta.rows * cellH) / 2;
-      ctx.font = `500 ${cellW / CELL_RATIO}px "JetBrains Mono", ui-monospace, monospace`;
-      ctx.textAlign = "left";
+      inkW = cellW * GLYPH_STEP;
+      inkH = cellH * GLYPH_STEP;
+      ctx.textAlign = "center";
       ctx.textBaseline = "middle";
+    };
+
+    /** Fit प्र inside one mark slot, once per tone, at device resolution. */
+    const buildSprites = () => {
+      const probe = document.createElement("canvas").getContext("2d");
+      if (!probe) return;
+
+      let fontPx = inkH;
+      for (let i = 0; i < 6; i++) {
+        probe.font = `500 ${fontPx}px ${GLYPH_FONT}`;
+        const m = probe.measureText(GLYPH);
+        const glyphH = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent || fontPx;
+        const fit = Math.min(1, (inkW * GLYPH_FIT) / (m.width || fontPx), (inkH * GLYPH_FIT) / glyphH);
+        if (fit >= 0.995) break;
+        fontPx *= fit;
+      }
+
+      const colors = toneColors.length ? toneColors : [ink];
+      sprites = colors.map((color) => {
+        const sprite = document.createElement("canvas");
+        sprite.width = Math.max(1, Math.round(inkW * dpr));
+        sprite.height = Math.max(1, Math.round(inkH * dpr));
+        const g = sprite.getContext("2d");
+        if (!g) return sprite;
+        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        g.fillStyle = color;
+        g.font = `500 ${fontPx}px ${GLYPH_FONT}`;
+        g.textAlign = "center";
+        g.textBaseline = "middle";
+        g.fillText(GLYPH, inkW / 2, inkH / 2);
+        return sprite;
+      });
     };
 
     const draw = (seconds: number) => {
       ctx.clearRect(0, 0, width, height);
+      if (!sprites.length) return;
+
       const frame = drawPiece(seconds);
       const rows = frame.text.split("\n");
-      if (!dark) for (let y = 0; y < rows.length; y++) rows[y] = rows[y].replace(DOT_RE, (g) => DOT_RAMP[g]);
       const colors = frame.color.split("\n");
 
-      ctx.globalAlpha = alpha;
-      for (let y = 0; y < rows.length; y++) {
+      for (let y = 0; y < rows.length; y += GLYPH_STEP) {
         const text = rows[y];
         const colorRow = colors[y] ?? "";
-        const baseline = offsetY + (y + 0.5) * cellH;
-        const toneAt = (i: number) => toneIndex[colorRow[i]] ?? 0;
-        let start = 0;
-        for (let x = 1; x <= text.length; x++) {
-          if (x === text.length || toneAt(x) !== toneAt(start)) {
-            const run = text.slice(start, x);
-            if (run.trim()) {
-              ctx.fillStyle = toneColors[toneAt(start)] ?? ink;
-              ctx.fillText(run, offsetX + start * cellW, baseline);
-            }
-            start = x;
-          }
+        const centerY = offsetY + (y + GLYPH_STEP / 2) * cellH;
+        for (let x = 0; x < text.length; x += GLYPH_STEP) {
+          const density = DENSITY[text[x]];
+          if (density === undefined) continue;
+          const sprite = sprites[toneIndex[colorRow[x]] ?? 0] ?? sprites[0];
+          if (!sprite) continue;
+          // Slow, staggered breath: the field moves, the marks breathe with it.
+          const pulse = 0.94 + 0.06 * Math.sin(seconds * 1.1 + x * 0.55 + y * 0.85);
+          const w = inkW * SIZE_RAMP[density] * pulse;
+          const h = inkH * SIZE_RAMP[density] * pulse;
+          ctx.globalAlpha = alpha * ALPHA_RAMP[density];
+          ctx.drawImage(sprite, offsetX + (x + GLYPH_STEP / 2) * cellW - w / 2, centerY - h / 2, w, h);
         }
       }
       ctx.globalAlpha = 1;
@@ -208,6 +256,7 @@ export function PlasmaBackdrop() {
       stop();
       layout();
       readTheme();
+      buildSprites();
       if (motion.matches) {
         draw(STILL_TIME);
       } else {
@@ -223,6 +272,7 @@ export function PlasmaBackdrop() {
     const onMotionChange = () => restart();
     const observer = new MutationObserver(() => {
       readTheme();
+      buildSprites();
       if (motion.matches) draw(STILL_TIME);
     });
 
@@ -231,8 +281,11 @@ export function PlasmaBackdrop() {
     motion.addEventListener("change", onMotionChange);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-    // Re-layout once the mono face is in: cell widths assume its 0.6em advance.
-    document.fonts?.ready.then(() => {
+    // Re-layout once the mono face and the Devanagari mark are in: cell widths
+    // assume the mono advance, and the sprite needs its real metrics.
+    const fonts = document.fonts;
+    fonts?.load(`500 64px "Noto Sans Devanagari"`, GLYPH).catch(() => undefined);
+    fonts?.ready.then(() => {
       if (!disposed && !document.hidden) restart();
     });
 

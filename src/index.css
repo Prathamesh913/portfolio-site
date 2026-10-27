@@ -57,13 +57,13 @@
 }
 
 :root[data-theme="light"] {
-  --bg: #f7f8f9;
+  --bg: #f8f8f8;
   --panel: #ffffff;
-  --element: #eef0f2;
-  --border: #e3e6e9;
-  --ink: #16181c;
-  --ink-soft: #3f4650;
-  --muted: #6b7280;
+  --element: #e7edef;
+  --border: #d9e2e6;
+  --ink: #11181b;
+  --ink-soft: #37474f;
+  --muted: #5e7077;
   /* Light: orange is the brand accent; blue stays for status/information. */
   --accent-primary: #c2471d;
   --accent-primary-hover: #9e3814;
@@ -74,6 +74,8 @@
   --primary: var(--accent-primary);
   --primary-deep: var(--accent-primary-hover);
   --info: var(--accent-secondary);
+  /* Cool wash over the ASCII field so it reads as porcelain, not paper. */
+  --backdrop-wash: rgba(242, 245, 246, 0.8);
   --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
   color-scheme: light;
 }
@@ -83,13 +85,13 @@ html { scroll-behavior: smooth; }
 /* No-JS / pre-toggle fallback — follow the OS until a choice is stored. */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
-    --bg: #f7f8f9;
+    --bg: #f8f8f8;
     --panel: #ffffff;
-    --element: #eef0f2;
-    --border: #e3e6e9;
-    --ink: #16181c;
-    --ink-soft: #3f4650;
-    --muted: #6b7280;
+    --element: #e7edef;
+    --border: #d9e2e6;
+    --ink: #11181b;
+    --ink-soft: #37474f;
+    --muted: #5e7077;
     --accent-primary: #c2471d;
     --accent-primary-hover: #9e3814;
     --accent-primary-muted: rgba(194, 71, 29, 0.12);
@@ -99,6 +101,7 @@ html { scroll-behavior: smooth; }
     --primary: var(--accent-primary);
     --primary-deep: var(--accent-primary-hover);
     --info: var(--accent-secondary);
+    --backdrop-wash: rgba(242, 245, 246, 0.8);
     --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
     color-scheme: light;
   }
@@ -131,7 +134,7 @@ html { scroll-behavior: smooth; }
   background: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.42) 30%, rgba(0, 0, 0, 0.42) 70%, transparent 100%);
 }
 :root[data-theme="light"] .backdrop::after {
-  background: linear-gradient(90deg, transparent 0%, rgba(247, 248, 249, 0.66) 30%, rgba(247, 248, 249, 0.66) 70%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--backdrop-wash, rgba(242, 245, 246, 0.8)) 30%, var(--backdrop-wash, rgba(242, 245, 246, 0.8)) 70%, transparent 100%);
 }
 @media (max-width: 899px) {
   .backdrop::after { display: none; }
@@ -518,6 +521,10 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
   margin: 0 0 0.8rem;
 }
 .coll-project-cover { aspect-ratio: 16 / 9; object-fit: cover; object-position: top center; }
+/* Case-study plates are authored on a 4:3 canvas. Matching the frame to the
+   source keeps the whole phone mockup / pack / catalogue in view instead of
+   slicing its top and bottom when cover-filling a wider box. */
+.coll-card--project .coll-project-cover { aspect-ratio: 4 / 3; }
 .coll-meta { margin: 0; font-family: var(--font); font-size: 0.72rem; color: var(--info); }
 .coll-title {
   margin: 0.4rem 0 0.4rem ; font-family: var(--font); font-size: 0.98rem; font-weight: 700;
