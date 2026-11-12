@@ -4,11 +4,12 @@
 //   1. Serverless proxy (Vercel `/api/github`, then the Netlify-functions
 //      path) — official GraphQL calendar, needs GITHUB_TOKEN server-side.
 //   2. Public contributions proxy — real GitHub data, no token needed.
-//   3. Seeded placeholder in `src/data/github.ts` — only when both are
-//      unreachable, badged "snapshot" in the UI.
+//
+// No placeholder: when neither answers, this returns null and the UI
+// shows "Data not available from GitHub" instead of invented activity.
 
 import {
-  githubFallback,
+  GITHUB_USERNAME,
   type ContributionLevel,
   type ContributionWeek,
   type GithubActivitySnapshot,
@@ -100,16 +101,14 @@ async function tryPublicProxy(username: string): Promise<GithubActivitySnapshot 
   }
 }
 
-export async function fetchGithubActivity(): Promise<GithubActivitySnapshot> {
+export async function fetchGithubActivity(): Promise<GithubActivitySnapshot | null> {
   for (const url of ENDPOINTS) {
     const snapshot = await tryEndpoint(url);
     // The endpoint answers 200 with empty weeks when the token is missing —
     // treat that as "try the next source", not as a final answer.
     if (snapshot && snapshot.weeks.length > 0) return snapshot;
   }
-  const proxy = await tryPublicProxy(githubFallback.username);
+  const proxy = await tryPublicProxy(GITHUB_USERNAME);
   if (proxy) return proxy;
-  return githubFallback;
+  return null;
 }
-
-export { githubFallback };

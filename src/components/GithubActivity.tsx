@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  githubFallback,
+  GITHUB_USERNAME,
+  githubSample,
   type ContributionDay,
   type GithubActivitySnapshot,
 } from "../data/github";
 import { fetchGithubActivity } from "../lib/github";
 import { useInViewOnce } from "../lib/useInViewOnce";
 import { SplitFlapLabel } from "./objects/SplitFlapLabel";
+import { Skeleton } from "skullet/react";
 
 const CELL = 10; // square cell size at natural scale
 const BASE_STEP = 13; // cell + gap at natural scale
@@ -60,10 +62,37 @@ function currentStreak(data: GithubActivitySnapshot): number {
   return streak;
 }
 
+/** Honest unavailable state — shown when every GitHub source is unreachable,
+ *  instead of the old seeded placeholder calendar. */
+function GithubUnavailable({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="github-error" role="alert">
+      <p className="github-error__title">GitHub seems to be having a moment</p>
+      <p className="github-error__body">
+        Give it another shot, or take a peek at my GitHub profile.
+      </p>
+      <div className="github-error__actions">
+        <button type="button" className="github-error__retry" data-cuelume-tap onClick={onRetry}>
+          Try again
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function GithubActivity() {
-  const [data, setData] = useState<GithubActivitySnapshot>(githubFallback);
+  const [data, setData] = useState<GithubActivitySnapshot | null>(null);
   const [loading, setLoading] = useState(true);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [failed, setFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
+  // Skullet swaps panes on reveal, remounting the scroller — a callback ref
+  // keeps measuring the live element instead of the unmounted ghost.
+  const setScrollRef = useCallback((el: HTMLDivElement | null) => {
+    scrollRef.current = el;
+    setScrollEl(el);
+  }, []);
   const [available, setAvailable] = useState<number | null>(null);
   const [cursor, setCursor] = useState<Cursor | null>(null);
   const [tip, setTip] = useState<Tip | null>(null);
@@ -71,34 +100,42 @@ export function GithubActivity() {
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setFailed(false);
     fetchGithubActivity().then((snapshot) => {
-      if (!cancelled) {
+      if (cancelled) return;
+      if (snapshot) {
         setData(snapshot);
-        setLoading(false);
+      } else {
+        setData(null);
+        setFailed(true);
       }
+      setLoading(false);
     });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
 
   // Track the card's inner width so the graph can fill it on desktop while
   // keeping square cells; narrow viewports fall back to natural size + scroll.
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
+    if (!scrollEl) return;
     const measure = () => {
-      const next = el.clientWidth;
+      const next = scrollEl.clientWidth;
       setAvailable((prev) => (prev != null && Math.abs(prev - next) < 0.5 ? prev : next));
     };
     measure();
     if (typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(measure);
-    observer.observe(el);
+    observer.observe(scrollEl);
     return () => observer.disconnect();
-  }, []);
+  }, [scrollEl]);
 
-  const columns = data.weeks.length;
+  // Layout geometry derives from the live data when present, else from the
+  // skeleton sample so the loading shimmer is already full-size.
+  const view = data ?? githubSample;
+  const columns = view.weeks.length;
   const naturalWidth = columns > 1 ? columns * BASE_STEP - (BASE_STEP - CELL) : 0;
 
   const layout = useMemo(() => {
@@ -120,7 +157,7 @@ export function GithubActivity() {
   const monthLabels = useMemo(() => {
     const labels: { x: number; text: string }[] = [];
     let prevMonth = "";
-    data.weeks.forEach((week, col) => {
+    view.weeks.forEach((week, col) => {
       const first = week.days[0];
       if (!first) return;
       const month = monthShort(first.date);
@@ -128,10 +165,10 @@ export function GithubActivity() {
       prevMonth = month;
     });
     return labels;
-  }, [data, layout.step]);
+  }, [view, layout.step]);
 
-  const streak = useMemo(() => currentStreak(data), [data]);
-  const live = data.source === "live";
+  const streak = useMemo(() => (data ? currentStreak(data) : 0), [data]);
+  const live = data?.source === "live";
 
   const openTip = useCallback((day: ContributionDay, x: number, y: number, below: boolean) => {
     const count = day.count;
@@ -174,7 +211,7 @@ export function GithubActivity() {
 
   const cells = useMemo(
     () =>
-      data.weeks.flatMap((week, col) =>
+      view.weeks.flatMap((week, col) =>
         week.days.map((day) => {
           const row = weekdayOf(day.date);
           return (
@@ -191,11 +228,12 @@ export function GithubActivity() {
           );
         })
       ),
-    [data, layout, onCellEnter]
+    [view, layout, onCellEnter]
   );
 
   const moveCursor = useCallback(
     (next: Cursor) => {
+      if (!data) return;
       const week = data.weeks[next.col];
       if (!week) return;
       const day =
@@ -226,6 +264,7 @@ export function GithubActivity() {
 
   const onKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (!data) return;
       const cols = data.weeks.length;
       if (cols === 0) return;
       const lastWeek = data.weeks[cols - 1];
@@ -266,34 +305,48 @@ export function GithubActivity() {
         <p className="currently-updated" aria-live="polite">
           {loading
             ? "Checking GitHub…"
-            : `${data.totalContributions.toLocaleString()} contributions${streak > 0 ? ` · ${streak}-day streak` : ""}`}
+            : failed || !data
+              ? "Data not available from GitHub"
+              : `${data.totalContributions.toLocaleString()} contributions${streak > 0 ? ` · ${streak}-day streak` : ""}`}
         </p>
       </div>
       <div className={`github-card${inView ? " is-in" : ""}`} ref={cardRef}>
         <div className="github-card__head">
           <a
-            href={`https://github.com/${data.username}`}
+            href={`https://github.com/${GITHUB_USERNAME}`}
             target="_blank"
             rel="noreferrer"
           >
-            @{data.username} ↗<span className="sr-only"> (opens in a new tab)</span>
+            @{GITHUB_USERNAME} ↗<span className="sr-only"> (opens in a new tab)</span>
           </a>
-          <span
-            className={`currently-badge${live ? " is-live" : ""}`}
-            title={live ? "Live from GitHub" : "Placeholder — add GITHUB_TOKEN for live data"}
-          >
-            <span aria-hidden="true">{live ? "●" : "○"}</span> {live ? "live" : "snapshot"}
-          </span>
+          {data && (
+            <span
+              className={`currently-badge${live ? " is-live" : ""}`}
+              title={live ? "Live from GitHub" : "Snapshot — add GITHUB_TOKEN for live data"}
+            >
+              <span aria-hidden="true">{live ? "●" : "○"}</span> {live ? "live" : "snapshot"}
+            </span>
+          )}
         </div>
-        <div
-          className="github-scroll"
-          ref={scrollRef}
-          tabIndex={0}
-          role="img"
-          aria-label={`${data.totalContributions.toLocaleString()} contributions in the last year by ${data.username}. Use the arrow keys to inspect individual days.`}
-          onKeyDown={onKeyDown}
-          onBlur={dismiss}
+        {/* Skullet: real data or an unavailable state — the sample only
+            measures the grid's true size while loading, it is never data. */}
+        <Skeleton
+          data={data}
+          sample={githubSample}
+          id="github-activity"
+          label="Loading GitHub activity"
+          error={failed && !loading ? <GithubUnavailable onRetry={() => setReloadKey((k) => k + 1)} /> : undefined}
         >
+        {() => (
+          <div
+            className="github-scroll"
+            ref={setScrollRef}
+            tabIndex={0}
+            role="img"
+            aria-label={`${view.totalContributions.toLocaleString()} contributions in the last year by ${view.username}. Use the arrow keys to inspect individual days.`}
+            onKeyDown={onKeyDown}
+            onBlur={dismiss}
+          >
           <div className="github-canvas" style={{ width: layout.width, height: layout.height }}>
             <svg
               className="github-svg"
@@ -338,12 +391,14 @@ export function GithubActivity() {
               </span>
             )}
           </div>
-        </div>
+          </div>
+        )}
+        </Skeleton>
         <p className="sr-only" role="status">
           {tip ? `${tip.month} ${tip.day}, ${countLabel(tip.count)}` : ""}
         </p>
         <div className="github-foot">
-          <span className="github-updated">Last year · updated {data.updatedAt}</span>
+          <span className="github-updated">{data ? `Updated ${data.updatedAt}` : loading ? "Checking for updates…" : "No updates available"}</span>
           <span className="github-legend">
             Less
             {[0, 1, 2, 3, 4].map((level) => (

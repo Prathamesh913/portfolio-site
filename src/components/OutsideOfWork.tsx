@@ -2,12 +2,15 @@ import { RecentlyWatched } from "./RecentlyWatched";
 import { Bookshelf } from "./objects/Bookshelf";
 import { PhotoLine } from "./PhotoLine";
 import { books, photos, youtubeChannel, youtubeVideos } from "../data/outsideOfWork";
+import { SkeletonUntilView } from "../lib/skullet";
 
 function PhotosBlock() {
   return (
     <section className="oow-block oow-photos-block" aria-labelledby="oow-photos">
       <h3 id="oow-photos">Photos</h3>
-      <PhotoLine photos={photos} />
+      <SkeletonUntilView id="oow-photos" label="Loading photos">
+        <PhotoLine photos={photos} />
+      </SkeletonUntilView>
     </section>
   );
 }
@@ -16,7 +19,9 @@ function BooksBlock() {
   return (
     <section className="oow-block" aria-labelledby="oow-books">
       <h3 id="oow-books">Books I've Read</h3>
-      <Bookshelf />
+      <SkeletonUntilView id="oow-books" label="Loading books">
+        <Bookshelf />
+      </SkeletonUntilView>
     </section>
   );
 }
@@ -31,6 +36,7 @@ function YouTubeBlock() {
         </a>
       </div>
       <p className="oow-block__note">Things I've made and shared.</p>
+      <SkeletonUntilView id="oow-youtube" label="Loading videos">
       <div className="oow-videos">
         {youtubeVideos.map((video) => (
           <a
@@ -69,6 +75,7 @@ function YouTubeBlock() {
           </a>
         ))}
       </div>
+      </SkeletonUntilView>
     </section>
   );
 }

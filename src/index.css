@@ -1630,14 +1630,15 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 .recently-profile { margin: 0; font-size: 0.78rem; text-align: right; }
 .recently-profile a { border-bottom: 1px solid var(--muted); transition: color 150ms ease, border-color 150ms ease; }
 .recently-profile a:hover { color: var(--primary); border-color: var(--primary); }
-.recently-skeleton {
-  background: var(--element); display: block; width: 100%;
-  animation: recently-pulse 1.6s ease-in-out infinite;
-}
-.recently-skeleton--line { height: 0.85rem; border-radius: 4px; }
-@keyframes recently-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
+/* Skeleton states now come from Skullet (src/lib/skullet.tsx) — measured
+   shimmer with smart reveal, no bespoke pulse. */
+/* Horizontal-scroll strips (books shelf, recently watched, photos, youtube)
+   clamp the measured skeleton pane to the viewport width. Without this the
+   max-content scroller is measured whole and the shimmer layer spans the
+   entire shelf instead of the visible strip. */
+.skullet-reveal [skullet-loading] {
+  width: 100%;
+  overflow-x: hidden;
 }
 
 @media (max-width: 600px) {
@@ -1963,6 +1964,35 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outli
 }
 .github-card__head a { border-bottom: 1px solid var(--muted); transition: color 150ms ease, border-color 150ms ease; }
 .github-card__head a:hover { color: var(--primary); border-color: var(--primary); }
+/* Unavailable state (every source failed): panel of equal presence to the
+   grid it replaces, in the card's own instrument idiom. */
+.github-error {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem;
+  min-height: 8.5rem; justify-content: center;
+  margin-top: 0.9rem; padding: 0.25rem 0.25rem 0.25rem;
+}
+.github-error__title {
+  margin: 0; font-family: var(--font); font-size: 0.95rem; font-weight: 700;
+  letter-spacing: -0.01em; color: var(--ink);
+}
+.github-error__body { margin: 0; font-size: 0.84rem; color: var(--muted); max-width: 32rem; line-height: 1.6; }
+.github-error__actions { display: inline-flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; margin-top: 0.5rem; }
+.github-error__retry {
+  appearance: none; cursor: pointer;
+  font-family: var(--font); font-size: 0.74rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 0.45rem 0.95rem;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: transparent; color: var(--ink-soft);
+  transition: color 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+.github-error__retry:hover { color: var(--primary); border-color: var(--primary); }
+.github-error__retry:active { transform: scale(0.97); }
+.github-error__link {
+  font-size: 0.8rem; border-bottom: 1px solid var(--muted);
+  transition: color 150ms ease, border-color 150ms ease;
+}
+.github-error__link:hover { color: var(--primary); border-color: var(--primary); }
 .github-scroll { overflow-x: auto; margin-top: 0.9rem; padding-bottom: 0.25rem; }
 .github-scroll:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 4px; }
 .github-svg { display: block; }

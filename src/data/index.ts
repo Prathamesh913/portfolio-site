@@ -5,7 +5,7 @@ export { blogPosts, blogSeries } from "./blogs";
 export { galleryItems } from "./gallery";
 export type { GalleryItem, GalleryImage, GalleryPoint } from "./gallery";
 export { currentlyFallback } from "./currently";
-export { githubFallback } from "./github";
+export { GITHUB_USERNAME, githubSample } from "./github";
 export type {
   ContributionDay,
   ContributionWeek,

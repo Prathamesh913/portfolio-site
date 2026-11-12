@@ -1,5 +1,6 @@
 import type { RecentItem } from "../lib/trakt";
 import { recentTitle, useRecentWatched } from "../lib/traktStore";
+import { Skeleton } from "skullet/react";
 
 function relativeTime(iso: string): string {
   const then = Date.parse(iso);
@@ -78,30 +79,36 @@ function Card({ item }: { item: RecentItem }) {
   );
 }
 
-function Skeleton() {
+function SampleStrip() {
   return (
-    <section className="oow-block oow-block--watching" aria-hidden="true">
-      <div className="oow-block__head">
-        <h3>Watching</h3>
-      </div>
-      <div className="recently-strip">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div className="recently-card" key={i}>
-            <span className="recently-card__media recently-skeleton" />
-            <span className="recently-card__body">
-              <span className="recently-card__title recently-skeleton recently-skeleton--line" />
-            </span>
-          </div>
-        ))}
-      </div>
-    </section>
+    <div className="recently-strip">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div className="recently-card" key={i}>
+          <span className="recently-card__media" aria-hidden="true" />
+          <span className="recently-card__body" aria-hidden="true">
+            <span className="recently-card__title">Loading title</span>
+          </span>
+        </div>
+      ))}
+    </div>
   );
 }
 
 export function RecentlyWatched() {
   const { snapshot, loading } = useRecentWatched();
 
-  if (loading) return <Skeleton />;
+  if (loading) {
+    return (
+      <section className="oow-block oow-block--watching" aria-labelledby="oow-watching">
+        <div className="oow-block__head">
+          <h3 id="oow-watching">Watching</h3>
+        </div>
+        <Skeleton id="recently-watched" label="Loading recently watched" loading>
+          <SampleStrip />
+        </Skeleton>
+      </section>
+    );
+  }
   if (!snapshot || snapshot.items.length === 0) return null;
 
   return (

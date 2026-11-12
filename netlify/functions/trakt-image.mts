@@ -3,6 +3,7 @@
 
 const TIMEOUT = 8_000;
 const ALLOWED_HOST = /(^|\.)trakt\.tv$/i;
+const ALLOWED_IMAGE_PATH = /\.(webp|jpg|jpeg|png)$/i;
 
 function isAllowedImage(raw: string): boolean {
   try {
@@ -10,7 +11,11 @@ function isAllowedImage(raw: string): boolean {
     return (
       url.protocol === "https:" &&
       ALLOWED_HOST.test(url.hostname) &&
-      url.pathname.includes("/images/")
+      // Trakt migrated from walter-r2.trakt.tv/images/... to
+      // media.trakt.tv/... (no "/images/" segment), so don't pin the
+      // pathname shape — the host allowlist + image extension is the
+      // SSRF boundary.
+      ALLOWED_IMAGE_PATH.test(url.pathname)
     );
   } catch {
     return false;

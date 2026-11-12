@@ -14,6 +14,7 @@ import { OutsideOfWork } from "./components/OutsideOfWork";
 import { SkillIcon, SocialIcon } from "./components/SkillIcons";
 import { GoToTop, ScrollProgress, SiteHeader } from "./components/SiteHeader";
 import { useInViewOnce } from "./lib/useInViewOnce";
+import { SkeletonUntilView } from "./lib/skullet";
 import { useChipStamp } from "./lib/useChipStamp";
 import { useKeyboardShortcuts } from "./lib/useKeyboardShortcuts";
 
@@ -489,6 +490,8 @@ function App() {
 
         <section className={`experience section-frame ${revealExperience.revealClass}`} ref={revealExperience.ref} aria-label="Experience">
           <h2>Experience</h2>
+          {/* Below-fold static list: measured skeleton until first view. */}
+          <SkeletonUntilView id="experience" label="Loading experience">
           <div className="exp-list">
             {experience.map((job, i) => (
               <ExperienceRow
@@ -500,6 +503,7 @@ function App() {
               />
             ))}
           </div>
+          </SkeletonUntilView>
         </section>
 
         <section className="skills section-frame" aria-label="Skills">

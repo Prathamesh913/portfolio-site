@@ -1,13 +1,16 @@
 // GitHub activity — contribution-calendar snapshot.
 //
-// Renders `githubFallback` only when both live sources are unreachable:
-// the token-backed endpoint (api/github.ts on Vercel,
-// netlify/functions/github.mts on Netlify) first, then the token-free
-// public proxy in src/lib/github.ts. Same shape throughout, so swapping
-// sources needs no component changes.
+// Data resolution lives in src/lib/github.ts: the token-backed endpoint
+// (api/github.ts on Vercel, netlify/functions/github.mts on Netlify) first,
+// then the token-free public proxy. Same shape throughout, so swapping
+// sources needs no component changes. When no source answers, the client
+// returns null and the UI shows "Data not available from GitHub" — there
+// is no placeholder calendar to fall back on.
 //
-// The fallback below is a seeded placeholder, not real activity — it only
-// shows as a last resort, and the UI badges it "snapshot".
+// `githubSample` below is NOT displayed data. It is only Skullet's `sample`
+// prop: its counts/dates are never rendered as content, they exist solely
+// so the loading skeleton measures the real grid's true 53×7 geometry and
+// nothing shifts when live data arrives.
 
 export type ContributionLevel = 0 | 1 | 2 | 3 | 4;
 
@@ -29,7 +32,7 @@ export type GithubActivitySnapshot = {
   source: "live" | "snapshot";
 };
 
-/** Deterministic PRNG so the placeholder is stable across renders. */
+/** Deterministic PRNG so the skeleton sample is stable across renders. */
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
@@ -46,7 +49,8 @@ function levelFor(count: number, max: number): ContributionLevel {
   return Math.min(4, Math.ceil((count / max) * 4)) as ContributionLevel;
 }
 
-/** 53 Sunday-start week columns ending this week, with bursty fake counts. */
+/** 53 Sunday-start week columns shaped like a real calendar (geometry only —
+ *  counts are irrelevant, they are never displayed). */
 function buildPlaceholderWeeks(todayIso: string): ContributionWeek[] {
   const rand = mulberry32(913);
   const today = new Date(`${todayIso}T00:00:00Z`);
@@ -91,14 +95,14 @@ function buildPlaceholderWeeks(todayIso: string): ContributionWeek[] {
   return weeks;
 }
 
-const placeholderWeeks = buildPlaceholderWeeks("2026-09-10");
+export const GITHUB_USERNAME = "Prathamesh913";
 
-export const githubFallback: GithubActivitySnapshot = {
-  username: "Prathamesh913",
-  totalContributions: placeholderWeeks
-    .flatMap((w) => w.days)
-    .reduce((sum, d) => sum + d.count, 0),
-  weeks: placeholderWeeks,
+const sampleWeeks = buildPlaceholderWeeks("2026-09-10");
+
+export const githubSample: GithubActivitySnapshot = {
+  username: GITHUB_USERNAME,
+  totalContributions: sampleWeeks.flatMap((w) => w.days).reduce((sum, d) => sum + d.count, 0),
+  weeks: sampleWeeks,
   updatedAt: "2026-09-10",
   source: "snapshot",
 };

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { currentlyFallback, type CurrentlySnapshot } from "../data/currently";
 import { fetchCurrently } from "../lib/currently";
 import { pickWatchPoster, useRecentWatched } from "../lib/traktStore";
+import { Skeleton } from "skullet/react";
 import { CRTScreen } from "./objects/CRTScreen";
 import { ReadingBook } from "./objects/ReadingBook";
 import { RecordPlayer } from "./objects/RecordPlayer";
@@ -93,6 +94,9 @@ export function CurrentlySection() {
           {loading ? "Checking live sources…" : anyLive ? `Live · updated ${data.updatedAt}` : `Snapshot · ${data.updatedAt}`}
         </p>
       </div>
+      {/* Skullet: fallback data is the measured sample, so the skeleton
+          matches the real card layout exactly (no layout shift). */}
+      <Skeleton id="currently" label="Loading currently" loading={loading}>
       <div className="currently-grid">
         <CardShell
           label="Working"
@@ -198,6 +202,7 @@ export function CurrentlySection() {
           )}
         </CardShell>
       </div>
+      </Skeleton>
     </section>
   );
 }

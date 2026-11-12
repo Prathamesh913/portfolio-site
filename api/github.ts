@@ -9,8 +9,9 @@
 //                    Create at https://github.com/settings/tokens
 //   GITHUB_USERNAME  e.g. Prathamesh913
 //
-// Without credentials it responds with empty weeks + source "snapshot",
-// and the frontend keeps its placeholder. Same logic is deployed to
+// Without credentials it responds with empty weeks + source "snapshot";
+// the frontend treats that as no-data (tries the public proxy, then shows
+// "Data not available from GitHub"). Same logic is deployed to
 // Netlify via netlify/functions/github.mts.
 
 type Level = 0 | 1 | 2 | 3 | 4;
